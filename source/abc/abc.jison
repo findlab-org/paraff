@@ -158,7 +158,7 @@ x									\b[x](?=[\W\d\s])
 N									[0-9]
 P									\b[P](?=[A-Ga-g]\b)
 
-SPECIAL								[:!^_,'/<>={}()\[\]|.\-+]
+SPECIAL								[:!^_,'/<>={}()\[\]|.\-+~]
 
 
 %%
@@ -168,8 +168,8 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+]
 <string>\\\"						return 'STR_CONTENT'
 <string>[^"]+						return 'STR_CONTENT'
 
-^[T][:]								{ this.pushState('title_string'); return 'T:'; }
-^[C][:]								{ this.pushState('title_string'); return 'C:'; }
+^[T][:][\s]*						{ this.pushState('title_string'); return 'T:'; }
+^[C][:][\s]*						{ this.pushState('title_string'); return 'C:'; }
 <title_string>\n					{ this.popState(); }
 <title_string>[^\n]+				return 'STR_CONTENT'
 
@@ -358,7 +358,7 @@ lower_phonet
 
 patches
 	: patch								-> [$1]
-	| bar								-> []
+	| bar patch							-> [$2]
 	| patches patch						-> [...$1, $2]
 	| patches comment					-> $1
 	| tailless_patch					-> [$1]
@@ -378,6 +378,8 @@ bar
 	| '|' ':'							-> '|:'
 	| ':' '|'							-> ':|'
 	| ':' ':'							-> ':|:'
+	| ':' '|' ':'						-> ':|:'
+	| ':' '|' '|' ':'					-> ':|:'
 	| '|' '|'							-> '||'
 	| '|' ']'							-> '|]'
 	| '|' N								-> '|' + $2
@@ -408,6 +410,7 @@ expressive_mark
 articulation
 	: '!' articulation_content '!' 		-> $2
 	| P									-> articulation("prall")
+	| '~'								-> articulation("mordent")
 	;
 
 articulation_content
