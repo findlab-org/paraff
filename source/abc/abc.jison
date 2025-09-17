@@ -139,6 +139,7 @@
 %x string
 %x comment
 %x spec_comment
+%x title_string
 
 
 H									\b[A-Z](?=\:)
@@ -159,6 +160,10 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+]
 <string>\"							{ this.popState(); return 'STR_END'; }
 <string>\\\"						return 'STR_CONTENT'
 <string>[^"]+						return 'STR_CONTENT'
+
+^[T][:]								{ this.pushState('title_string'); return 'T:'; }
+<title_string>\n					{ this.popState(); }
+<title_string>[^\n]+				return 'STR_CONTENT'
 
 ^[%]								{ this.pushState('comment'); }
 <comment>[%]						{ this.pushState('spec_comment'); }
@@ -248,6 +253,7 @@ staff_layout_item
 
 head_line
 	: H ':' header_value				-> header($1, $3)
+	| 'T:' string_content				-> header('T', $2)
 	;
 
 header_value
@@ -328,6 +334,7 @@ patches
 	: patch								-> [$1]
 	| patches patch						-> [...$1, $2]
 	| patches comment					-> $1
+	| music								-> [patch($1, null)]
 	;
 
 patch
