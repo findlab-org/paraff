@@ -129,6 +129,12 @@
 		note,
 		bpm,
 	});
+
+
+	const key = (root, mode) => ({
+		root,
+		mode,
+	});
 %}
 
 
@@ -144,6 +150,7 @@
 
 H									\b[A-Z](?=\:)
 A									\b[A-G](?=[\W\d\sA-Ga-g_]*\b)
+Am									\b[A-G](?=[m][a][j]|[m][i][n]\b)
 a									\b[a-g](?=[\W\d\sA-Ga-g_]*\b)
 z									\b[z]
 Z									\b[Z]
@@ -162,6 +169,7 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+]
 <string>[^"]+						return 'STR_CONTENT'
 
 ^[T][:]								{ this.pushState('title_string'); return 'T:'; }
+^[C][:]								{ this.pushState('title_string'); return 'C:'; }
 <title_string>\n					{ this.popState(); }
 <title_string>[^\n]+				return 'STR_CONTENT'
 
@@ -172,7 +180,7 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+]
 <comment>\n							{ this.popState(); }
 <spec_comment>\s					{}
 <spec_comment>"score"				return 'SCORE'
-<spec_comment>[\d]+					return 'NN'
+<spec_comment>[\w]+					return 'NN'
 <spec_comment>[(){}\[\]|]			return yytext
 
 \s+									{}
@@ -181,6 +189,7 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+]
 
 {H}									return 'H'
 {A}									return 'A'
+{Am}								return 'A'
 {a}									return 'a'
 {z}									return 'z'
 {Z}									return 'Z'
@@ -190,7 +199,9 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+]
 \b[ms]?[pf]+[z]?\b					return 'DYNAMIC'
 
 "staff"								return 'STAFF'
-[a-z][\w-]*							return 'NAME'
+"maj"								return 'MAJ'
+"min"								return 'MIN'
+[a-zA-Z][\w-]*						return 'NAME'
 
 <<EOF>>								return 'EOF'
 
@@ -252,8 +263,9 @@ staff_layout_item
 	;
 
 head_line
-	: H ':' header_value				-> header($1, $3)
-	| 'T:' string_content				-> header('T', $2)
+	: 'T:' string_content				-> header('T', $2)
+	| 'C:' string_content				-> header('C', $2)
+	| H ':' header_value				-> header($1, $3)
 	;
 
 header_value
@@ -265,10 +277,21 @@ header_value
 	| voice_exp
 	| staff_shift
 	| NAME
+	| key_signature
 	;
 
 staff_shift
 	: 'STAFF' plus_minus_number			-> staffShift($2)
+	;
+
+key_signature
+	: A									-> key($1, null)
+	| A key_mode						-> key($1, $2)
+	;
+
+key_mode
+	: MAJ								-> 'major'
+	| MIN								-> 'minor'
 	;
 
 plus_minus_number
@@ -306,6 +329,8 @@ voice_exp
 	: number							-> voice($1)
 	| number NAME						-> voice($1, $2)
 	| number NAME assigns				-> voice($1, $2, $3)
+	| NAME								-> voice(1, $1)
+	| NAME assigns						-> voice(1, $1, $2)
 	;
 
 assigns
@@ -320,6 +345,7 @@ assign
 assign_value
 	: string
 	| number
+	| NAME
 	;
 
 upper_phonet
@@ -332,13 +358,19 @@ lower_phonet
 
 patches
 	: patch								-> [$1]
+	| bar								-> []
 	| patches patch						-> [...$1, $2]
 	| patches comment					-> $1
-	| music								-> [patch($1, null)]
+	| tailless_patch					-> [$1]
+	| patches tailless_patch			-> [...$1, $2]
 	;
 
 patch
 	: music bar							-> patch($1, $2)
+	;
+
+tailless_patch
+	: music								-> patch($1, null)
 	;
 
 bar
