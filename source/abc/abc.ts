@@ -7,61 +7,14 @@ namespace ABC {
 	type Token = string;
 
 
-	export interface Pitch {
-		acc: string|null;
-		phonet: Token;
-		quotes: number|null;
-	};
-
-
-	//export interface Duration {
-	//};
-
-
-	export interface EventTerm {
-		chord: Pitch[];
-		duration: Fraction;
-		/*rest: boolean;
-		space: boolean;
-		beam: Token;
-		illBeam?: Boolean;
-		stem: Token;
-		timeWarp?: Fraction;
-		timeWarpEnd?: boolean;
-		grace?: boolean;
-		tremolo?: number;
-		tremoloPitcher?: number;
-		tremoloCatcher?: number;
-		staff: number;
-		tick: number;
-		stemDirection: string;*/
-	};
-
-
 	interface KeyValue {
 		name: string;
 		value: any;
 	};
 
 
-	export interface Control {
+	export interface ControlTerm {
 		control: KeyValue;
-	};
-
-
-	interface Text {
-		text: string;
-	};
-
-
-	interface Articulation {
-		articulation: Token;
-		scope: Token;
-	};
-
-
-	interface ExpressiveMark {
-		express: Token;
 	};
 
 
@@ -77,17 +30,65 @@ namespace ABC {
 	};
 
 
-	export type Term = Event | Control | Text | Articulation | ExpressiveMark | Grace;
+	export interface Articulation {
+		articulation: string;
+		scope?: '<' | '>';
+	};
+
+
+	export type Expressive =
+		| Articulation
+		| { express: Token }   // for tokens like '(' , ')', '.' , '-' stored as { express: $1 }
+	;
+
+
+	export interface TextTerm {
+		text: string;
+	}
+
+
+	export interface Pitch {
+		acc: Token | null;      // accidentals: '^' | '_' | '=' or null
+		phonet: Token; // underlying letter token or rest
+		quotes: number | null;   // number of single/double quotes: positive for sup, negative for sub, null if none
+	};
+
+
+	export interface Chord {
+		pitches: Pitch[];
+		tie?: any; // tie present in helper but not produced in grammar actions; keep any
+	};
+
+
+	export type PitchOrChord = Pitch | Chord;
+
+
+	export interface EventData {
+		chord: Array<PitchOrChord>; // grammar uses pitch_or_chord -> returns an array [$1]
+		duration?: Fraction;
+	};
+
+
+	export interface EventTerm {
+		event: EventData;
+		broken?: number;
+	};
+
+
+	export type MusicTerm =
+		| Expressive
+		| TextTerm
+		| EventTerm
+		| Grace
+		| ControlTerm;
 
 
 	type Header = KeyValue | Comment;
 
 
 	export interface BarPatch {
-		/*voice: number;
-		key: number;
-		timeSig: Fraction;*/
-		terms: Term[];
+		control: { [k: string]: any };
+		terms: MusicTerm[];
 		bar: Token;
 	};
 

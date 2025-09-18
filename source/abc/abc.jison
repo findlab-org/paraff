@@ -393,6 +393,7 @@ music
 	| music event						-> $1 ? [...$1, $2] : [$2]
 	| music grace_events				-> $1 ? [...$1, $2] : [$2]
 	| music control						-> $1 ? [...$1, $2] : [$2]
+	| music broken_rhythm				{ Object.assign($1.at(-1), $2); $$ = $1; }
 	;
 
 control
@@ -509,6 +510,19 @@ duration
 	| '/' number						-> frac(1, Number($2))
 	| number							-> frac(Number($1))
 	| '/'								-> frac(1, 2)
-	| '>'
-	| '<'
+	;
+
+broken_rhythm
+	: broken_right						-> ({broken: $1})
+	| broken_left						-> ({broken: $1})
+	;
+
+broken_right
+	: '>'								-> 1
+	| broken_right '>'					-> $1 + 1
+	;
+
+broken_left
+	: '<'								-> -1
+	| broken_left '<'					-> $1 - 1
 	;
