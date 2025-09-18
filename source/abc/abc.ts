@@ -21,7 +21,7 @@ namespace ABC {
 	interface Grace {
 		grace: boolean;
 		acciaccatura: Token;
-		events: Event[];
+		events: EventTerm[];
 	};
 
 
@@ -31,7 +31,7 @@ namespace ABC {
 
 
 	export interface Articulation {
-		articulation: string;
+		articulation: Token;
 		scope?: '<' | '>';
 	};
 
@@ -48,7 +48,7 @@ namespace ABC {
 
 
 	export interface Pitch {
-		acc: Token | null;      // accidentals: '^' | '_' | '=' or null
+		acc: number | null;      // accidentals: '^' | '_' | '=' or null
 		phonet: Token; // underlying letter token or rest
 		quotes: number | null;   // number of single/double quotes: positive for sup, negative for sub, null if none
 	};
