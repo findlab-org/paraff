@@ -25,6 +25,7 @@ interface ABCContext {
 	timeSig: Fraction;
 	baseDivision: number;
 	y: number;
+	lastBroken: number | null;
 };
 
 
@@ -113,30 +114,33 @@ const pitchToTokens = (ctx: ABCContext, pitch: ABC.Pitch): Token[] => {
 };
 
 
-const durationToTokens = (ctx: ABCContext, frac: Fraction): Token[] => {
-	const result: Token[] = [];
-	const { numerator, denominator } = frac;
+const durationToTokens = (ctx: ABCContext, duration: Fraction | undefined, broken: number | null): Token[] => {
+	const { numerator, denominator = 1 } = duration || { numerator: 1, denominator: 1 };
 
-	// TODO:
-	/*const denomMap: Record<number, Token> = {
-		1: Token.D1,
-		2: Token.D2,
-		4: Token.D4,
-		8: Token.D8,
-		16: Token.D16,
-		32: Token.D32,
-	};
+	const is2Power = (n: number): boolean => (n & (n - 1)) === 0 && n > 0;
 
-	if (denominator in denomMap) {
-		for (let i = 0; i < numerator; i++) {
-			result.push(denomMap[denominator]);
-		}
-	}*/
+	let n_odd = numerator;
+	while (n_odd % 2 === 0)
+		n_odd /= 2;
+
+	console.assert(is2Power(n_odd + 1), "invalid numerator in duration:", duration);
+	console.assert(is2Power(denominator), "invalid denominator in duration:", duration);
+
+	const dots = Math.log2(n_odd + 1) - 1 + Math.max(0, broken || 0) - Math.min(0, ctx.lastBroken || 0);
+	const division = ctx.baseDivision + Math.log2(denominator) - Math.floor(Math.log2(numerator)) + Math.max(Math.max(0, ctx.lastBroken || 0), -Math.min(0, broken || 0));
+
+	const result: Token[] = [TokenDivision[division]];
+	for (let d = dots; d > 0; d--)
+		result.push(Token.Dot);
+
 	return result;
 };
 
 
-const eventToTokens = (ctx: ABCContext, event: ABC.EventData): Token[] => {
+const eventToTokens = (ctx: ABCContext, term: ABC.EventTerm): Token[] => {
+	const event = term.event;
+	let isRest = false;
+
 	const tokens: Token[] = [];
 
 	for (const chordOrPitch of event.chord) {
@@ -144,11 +148,16 @@ const eventToTokens = (ctx: ABCContext, event: ABC.EventData): Token[] => {
 			for (const pitch of chordOrPitch.pitches)
 				tokens.push(...pitchToTokens(ctx, pitch));
 		}
-		else
+		else {
 			tokens.push(...pitchToTokens(ctx, chordOrPitch));
+			isRest = chordOrPitch.phonet === "z";
+		}
 	}
 	if (event.duration)
-		tokens.push(...durationToTokens(ctx, event.duration));
+		tokens.push(...durationToTokens(ctx, event.duration, term.broken));
+
+	if (isRest)
+		tokens.push(Token.Rest);
 
 	return tokens;
 };
@@ -161,6 +170,7 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 		timeSig: { numerator: 4, denominator: 4 },
 		baseDivision: 3,
 		y: 0,
+		lastBroken: null,
 	};
 
 	tune.header.forEach(header => {
@@ -199,14 +209,16 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 
 			for (const term of voice.terms) {
 				if ("event" in term) {
-					tokens.push(...eventToTokens(ctx, term.event));
+					tokens.push(...eventToTokens(ctx, term));
+
+					ctx.lastBroken = term.broken;
 				}
 				else if ("grace" in term) {
 					// Grace notes
 					for (const gEvent of term.events) {
 						tokens.push(Token.G);
 						if ("event" in gEvent)
-							tokens.push(...eventToTokens(ctx, gEvent.event));
+							tokens.push(...eventToTokens(ctx, gEvent));
 					}
 				}
 				else if ("articulation" in term || "express" in term) {
