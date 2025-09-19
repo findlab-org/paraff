@@ -143,10 +143,13 @@ const eventToTokens = (ctx: ABCContext, term: ABC.EventTerm): Token[] => {
 
 	const tokens: Token[] = [];
 
-	for (const pitch of event.chord.pitches)
+	for (const pitch of event.chord.pitches) {
 		tokens.push(...pitchToTokens(ctx, pitch));
-	if (event.duration)
-		tokens.push(...durationToTokens(ctx, event.duration, term.broken));
+
+		isRest = event.chord.pitches[0].phonet === "z";
+	}
+
+	tokens.push(...durationToTokens(ctx, event.duration, term.broken));
 
 	if (isRest)
 		tokens.push(Token.Rest);
@@ -214,8 +217,7 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 					}
 				}
 				else if ("articulation" in term || "express" in term) {
-					// Expressive articulation
-					tokens.push(Token.Dot);
+					// TODO: Expressive articulation
 				}
 				else if ("text" in term) {
 					// TextTerm: ignore
