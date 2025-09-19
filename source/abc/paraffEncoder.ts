@@ -20,6 +20,12 @@ interface ParaffMeasure {
 };
 
 
+interface ABCContext {
+	K: {root: string; mode?: string} | null;
+	L: Fraction | null;
+};
+
+
 const PhonetMapping: Record<string, Token> = {
 	a: Token.a,
 	b: Token.b,
@@ -46,25 +52,7 @@ const AccidentalMapping: Record<number, Token> = {
 };
 
 
-const eventToTokens = (event: ABC.EventData): Token[] => {
-	const tokens: Token[] = [];
-
-	for (const chordOrPitch of event.chord) {
-		if ("pitches" in chordOrPitch) {
-			for (const pitch of chordOrPitch.pitches)
-				tokens.push(...pitchToTokens(pitch));
-		}
-		else
-			tokens.push(...pitchToTokens(chordOrPitch));
-	}
-	if (event.duration)
-		tokens.push(...durationToTokens(event.duration));
-
-	return tokens;
-};
-
-
-const pitchToTokens = (pitch: ABC.Pitch): Token[] => {
+const pitchToTokens = (ctx: ABCContext, pitch: ABC.Pitch): Token[] => {
 	const result: Token[] = [];
 	result.push(PhonetMapping[pitch.phonet]);
 	if (pitch.acc) {
@@ -87,7 +75,7 @@ const pitchToTokens = (pitch: ABC.Pitch): Token[] => {
 };
 
 
-const durationToTokens = (frac: Fraction): Token[] => {
+const durationToTokens = (ctx: ABCContext, frac: Fraction): Token[] => {
 	const result: Token[] = [];
 	const { numerator, denominator } = frac;
 
@@ -109,8 +97,30 @@ const durationToTokens = (frac: Fraction): Token[] => {
 };
 
 
+const eventToTokens = (ctx: ABCContext, event: ABC.EventData): Token[] => {
+	const tokens: Token[] = [];
+
+	for (const chordOrPitch of event.chord) {
+		if ("pitches" in chordOrPitch) {
+			for (const pitch of chordOrPitch.pitches)
+				tokens.push(...pitchToTokens(ctx, pitch));
+		}
+		else
+			tokens.push(...pitchToTokens(ctx, chordOrPitch));
+	}
+	if (event.duration)
+		tokens.push(...durationToTokens(ctx, event.duration));
+
+	return tokens;
+};
+
+
 const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 	const measures: ParaffMeasure[] = [];
+	const ctx: ABCContext = {
+		K: null,
+		L: null,
+	};
 
 	for (const measure of tune.body.measures) {
 		const paraffMeasure: ParaffMeasure = {
@@ -127,14 +137,14 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 
 			for (const term of voice.terms) {
 				if ("event" in term) {
-					tokens.push(...eventToTokens(term.event));
+					tokens.push(...eventToTokens(ctx, term.event));
 				}
 				else if ("grace" in term) {
 					// Grace notes
 					for (const gEvent of term.events) {
 						tokens.push(Token.G);
 						if ("event" in gEvent)
-							tokens.push(...eventToTokens(gEvent.event));
+							tokens.push(...eventToTokens(ctx, gEvent.event));
 					}
 				}
 				else if ("articulation" in term || "express" in term) {
@@ -266,7 +276,7 @@ const abcToParaff = (document: ABC.Document): DescriptedSentence[] => {
 			sentence,
 			description,
 		};
-	}).filter(meaure => meaure.sentence.length > 5);
+	});
 };
 
 

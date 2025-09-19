@@ -1,6 +1,16 @@
 
 %{
 	const header = (name, value) => {
+		switch (name) {
+		case "K":
+			if (typeof value === "string") {
+				return {
+					name,
+					value: key(value),
+				};
+			}
+		}
+
 		return {
 			name,
 			value,
