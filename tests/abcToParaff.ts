@@ -1,17 +1,18 @@
 
 import fs from "fs";
-import path from "path";
 import YAML from "yaml";
 
 import { ABC, abcToParaff } from "../source/abc";
+import * as paraff from "../source/paraff";
 
 
 
 const main = async (abc_doc_path: string): Promise<void> => {
 	const sourceText = fs.readFileSync(abc_doc_path, {encoding: "utf-8"});
 	const doc = YAML.parse(sourceText) as ABC.Document;
-	const measures = abcToParaff(doc[0]);
-	console.log(JSON.stringify(measures, null, 2));
+	const sentences = abcToParaff(doc);
+	//console.log(JSON.stringify(sentences, null, 2));
+	console.log(sentences.map(s => paraff.stringifyTokens(s.sentence)).join("\n"));
 };
 
 

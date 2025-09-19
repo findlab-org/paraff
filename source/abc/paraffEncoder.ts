@@ -1,5 +1,6 @@
 
-import { Token } from "../paraff";
+import { Token, PromptToken, isTokenOf, TokenKey, TokenStaff, TokenOctaveShift, TokenNumerator, TokenDenominator,
+	TokenDivision, TokenTimewarp, TokenTremolo, TokenTremoloCast } from "../paraff/vocab";
 import { Fraction } from "../fraction";
 import { ABC } from "./abc";
 
@@ -45,7 +46,70 @@ const AccidentalMapping: Record<number, Token> = {
 };
 
 
-const abcToParaff = (tune: ABC.Tune): ParaffMeasure[] => {
+const eventToTokens = (event: ABC.EventData): Token[] => {
+	const tokens: Token[] = [];
+
+	for (const chordOrPitch of event.chord) {
+		if ("pitches" in chordOrPitch) {
+			for (const pitch of chordOrPitch.pitches)
+				tokens.push(...pitchToTokens(pitch));
+		}
+		else
+			tokens.push(...pitchToTokens(chordOrPitch));
+	}
+	if (event.duration)
+		tokens.push(...durationToTokens(event.duration));
+
+	return tokens;
+};
+
+
+const pitchToTokens = (pitch: ABC.Pitch): Token[] => {
+	const result: Token[] = [];
+	result.push(PhonetMapping[pitch.phonet]);
+	if (pitch.acc) {
+		const acc = AccidentalMapping[pitch.acc as number];
+		result.push(acc);
+	}
+	// TODO: determine acc by key signature in context
+
+	if (pitch.quotes) {
+		if (pitch.quotes > 0) {
+			for (let i = 0; i < pitch.quotes; i++)
+				result.push(Token.Osup);
+		}
+		else {
+			for (let i = 0; i < -pitch.quotes; i++)
+				result.push(Token.Osub);
+		}
+	}
+	return result;
+};
+
+
+const durationToTokens = (frac: Fraction): Token[] => {
+	const result: Token[] = [];
+	const { numerator, denominator } = frac;
+
+	const denomMap: Record<number, Token> = {
+		1: Token.D1,
+		2: Token.D2,
+		4: Token.D4,
+		8: Token.D8,
+		16: Token.D16,
+		32: Token.D32,
+	};
+
+	if (denominator in denomMap) {
+		for (let i = 0; i < numerator; i++) {
+			result.push(denomMap[denominator]);
+		}
+	}
+	return result;
+};
+
+
+const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 	const measures: ParaffMeasure[] = [];
 
 	for (const measure of tune.body.measures) {
@@ -102,67 +166,108 @@ const abcToParaff = (tune: ABC.Tune): ParaffMeasure[] => {
 };
 
 
-const eventToTokens = (event: ABC.EventData): Token[] => {
-	const tokens: Token[] = [];
-
-	for (const chordOrPitch of event.chord) {
-		if ("pitches" in chordOrPitch) {
-			for (const pitch of chordOrPitch.pitches)
-				tokens.push(...pitchToTokens(pitch));
-		}
-		else
-			tokens.push(...pitchToTokens(chordOrPitch));
-	}
-	if (event.duration)
-		tokens.push(...durationToTokens(event.duration));
-
-	return tokens;
+interface DescriptedSentence {
+	description: string[];
+	sentence: Token[];
 };
 
 
-const pitchToTokens = (pitch: ABC.Pitch): Token[] => {
-	const result: Token[] = [];
-	result.push(PhonetMapping[pitch.phonet]);
-	if (pitch.acc) {
-		const acc = AccidentalMapping[pitch.acc as number];
-		result.push(acc);
-	}
-	// TODO: determine acc by key signature in context
+const tokenizeFraction = (fraction: Fraction): Token[] => [TokenNumerator[fraction.numerator], TokenDenominator[fraction.denominator]];
 
-	if (pitch.quotes) {
-		if (pitch.quotes > 0) {
-			for (let i = 0; i < pitch.quotes; i++)
-				result.push(Token.Osup);
+
+const abcToParaff = (document: ABC.Document): DescriptedSentence[] => {
+	const measures = document.map(tuneToParaffMeasures).flat(1);
+
+	return measures.map(measure => {
+		const voices = measure.voices.filter(v => v.length)
+			; //.filter(v => !isPureSpaceVoice(v));	// ignore pure space voice
+		const tokens = voices.map((v, i) => i ? [Token.VB, ...v.filter(Boolean)] : v).flat(1);
+
+		if (measure.timeSig)
+			tokens.unshift(...tokenizeFraction(measure.timeSig));
+		if (Number.isInteger(measure.key))
+			tokens.unshift(TokenKey[measure.key!]);
+
+		const sentence = [
+			Token.BOM,
+			...tokens,
+			Token.EOM,
+		];
+
+		const staffTokens = tokens.filter(isTokenOf(TokenStaff));
+		const staffSet = new Set(staffTokens);
+		const maxStaff = Math.max(...staffTokens);
+		const polyvoice = Object.values(TokenStaff).some(s => voices.filter(voice => voice.some(t => t === s)).length > 1);
+		const divisionTokens = tokens.filter(isTokenOf(TokenDivision));
+		const maxDivision = Math.max(...divisionTokens);
+		const hasGrace = tokens.some(t => t === Token.G);
+		const hasTremolo = tokens.some(isTokenOf(TokenTremolo)) || tokens.some(isTokenOf(TokenTremoloCast));
+		const hasDot = tokens.some(t => t === Token.Dot);
+		const hasTimewarp = tokens.some(isTokenOf(TokenTimewarp));
+		const hasOctaveShift = tokens.some(isTokenOf(TokenOctaveShift));
+		const crossStaves = voices.some(voice => new Set(voice.filter(isTokenOf(TokenStaff))).size > 1);
+		const complicated = voices.length > staffSet.size * 2
+			|| voices.length > staffSet.size && crossStaves
+			|| new Set(divisionTokens).size > 4;
+
+		const description = Array.from(measure.description);
+
+		switch (maxStaff) {
+		case Token.S1:
+			description.push(PromptToken.SingleStaff);
+			break;
+		case Token.S2:
+			description.push(PromptToken.DoubleStaff);
+			break;
+		case Token.S3:
+			description.push(PromptToken.TripleStaff);
+			break;
 		}
-		else {
-			for (let i = 0; i < -pitch.quotes; i++)
-				result.push(Token.Osub);
+
+		description.push(polyvoice ? PromptToken.PolyVoice : PromptToken.MonoVoice);
+
+		switch (maxDivision) {
+		case Token.D1:
+			description.push(PromptToken.Rhythm1);
+			break;
+		case Token.D2:
+			description.push(PromptToken.Rhythm2);
+			break;
+		case Token.D4:
+			description.push(PromptToken.Rhythm4);
+			break;
+		case Token.D8:
+			description.push(PromptToken.Rhythm8);
+			break;
+		case Token.D16:
+			description.push(PromptToken.Rhythm16);
+			break;
+		case Token.D32:
+			description.push(PromptToken.Rhythm32);
+			break;
+		default:
+			description.push(PromptToken.Rhythm64);
+			break;
 		}
-	}
-	return result;
-}
 
+		description.push(hasGrace ? PromptToken.Grace : PromptToken.noGrace);
+		description.push(hasTremolo ? PromptToken.Tremolo : PromptToken.noTremolo);
+		description.push(hasDot ? PromptToken.Dot : PromptToken.noDot);
+		description.push(hasTimewarp ? PromptToken.Timewarp : PromptToken.noTimewarp);
+		description.push(hasOctaveShift ? PromptToken.OctaveShift : PromptToken.noOctaveShift);
 
-const durationToTokens = (frac: Fraction): Token[] => {
-	const result: Token[] = [];
-	const { numerator, denominator } = frac;
+		if (crossStaves)
+			description.push(PromptToken.CrossStaves);
 
-	const denomMap: Record<number, Token> = {
-		1: Token.D1,
-		2: Token.D2,
-		4: Token.D4,
-		8: Token.D8,
-		16: Token.D16,
-		32: Token.D32,
-	};
+		if (complicated)
+			description.push(PromptToken.Complicated);
 
-	if (denominator in denomMap) {
-		for (let i = 0; i < numerator; i++) {
-			result.push(denomMap[denominator]);
-		}
-	}
-	return result;
-}
+		return {
+			sentence,
+			description,
+		};
+	}).filter(meaure => meaure.sentence.length > 5);
+};
 
 
 
