@@ -60,11 +60,8 @@ namespace ABC {
 	};
 
 
-	export type PitchOrChord = Pitch | Chord;
-
-
 	export interface EventData {
-		chord: Array<PitchOrChord>; // grammar uses pitch_or_chord -> returns an array [$1]
+		chord: Chord; // grammar uses pitch_or_chord -> returns an array [$1]
 		duration?: Fraction;
 	};
 

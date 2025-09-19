@@ -466,7 +466,7 @@ text
 	;
 
 pitch_or_chord
-	: pitch								-> [$1]
+	: pitch								-> chord([$1])
 	| chord
 	;
 

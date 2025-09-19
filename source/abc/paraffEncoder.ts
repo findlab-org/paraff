@@ -143,16 +143,8 @@ const eventToTokens = (ctx: ABCContext, term: ABC.EventTerm): Token[] => {
 
 	const tokens: Token[] = [];
 
-	for (const chordOrPitch of event.chord) {
-		if ("pitches" in chordOrPitch) {
-			for (const pitch of chordOrPitch.pitches)
-				tokens.push(...pitchToTokens(ctx, pitch));
-		}
-		else {
-			tokens.push(...pitchToTokens(ctx, chordOrPitch));
-			isRest = chordOrPitch.phonet === "z";
-		}
-	}
+	for (const pitch of event.chord.pitches)
+		tokens.push(...pitchToTokens(ctx, pitch));
 	if (event.duration)
 		tokens.push(...durationToTokens(ctx, event.duration, term.broken));
 
