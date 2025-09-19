@@ -104,10 +104,13 @@ namespace ABC {
 	};
 
 
-	export interface Document {
+	export interface Tune {
 		headers: Header[];
 		body: Body;
 	};
+
+
+	export type Document = Tune[];
 }
 
 

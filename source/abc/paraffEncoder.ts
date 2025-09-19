@@ -45,10 +45,10 @@ const AccidentalMapping: Record<number, Token> = {
 };
 
 
-const abcToParaff = (document: ABC.Document): ParaffMeasure[] => {
+const abcToParaff = (tune: ABC.Tune): ParaffMeasure[] => {
 	const measures: ParaffMeasure[] = [];
 
-	for (const measure of document.body.measures) {
+	for (const measure of tune.body.measures) {
 		const paraffMeasure: ParaffMeasure = {
 			key: null,
 			timeSig: null,
