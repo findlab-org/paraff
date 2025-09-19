@@ -156,6 +156,7 @@
 %x comment
 %x spec_comment
 %x title_string
+%x key_signature
 
 
 H									\b[A-Z](?=\:)
@@ -182,6 +183,14 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+~]
 ^[C][:][\s]*						{ this.pushState('title_string'); return 'C:'; }
 <title_string>\n					{ this.popState(); }
 <title_string>[^\n]+				return 'STR_CONTENT'
+
+^[K][:][\s]*						{ this.pushState('key_signature'); return 'K:'; }
+<key_signature>[A-G]				return 'A';
+<key_signature>[b]					return 'FLAT';
+<key_signature>[#]					return 'SHARP';
+<key_signature>[m][a-z]*			return 'NAME';
+<key_signature>\n					{ this.popState(); }
+<key_signature>\]					{ this.popState(); return ']'; }
 
 ^[%]								{ this.pushState('comment'); }
 <comment>[%]						{ this.pushState('spec_comment'); }
@@ -275,6 +284,7 @@ staff_layout_item
 head_line
 	: 'T:' string_content				-> header('T', $2)
 	| 'C:' string_content				-> header('C', $2)
+	| 'K:' key_signature				-> header('K', $2)
 	| H ':' header_value				-> header($1, $3)
 	;
 
@@ -296,12 +306,20 @@ staff_shift
 
 key_signature
 	: A									-> key($1, null)
+	| A sharp_or_flat					-> key($1 + $2, null)
 	| A key_mode						-> key($1, $2)
+	| A sharp_or_flat key_mode			-> key($1 + $2, $3)
+	;
+
+sharp_or_flat
+	: SHARP								-> '#'
+	| FLAT								-> 'b'
 	;
 
 key_mode
 	: MAJ								-> 'major'
 	| MIN								-> 'minor'
+	| NAME								-> $1.startsWith("ma") ? "major" : "minor"
 	;
 
 plus_minus_number
@@ -408,6 +426,7 @@ music
 
 control
 	: '[' H ':' header_value ']'		-> ({control: header($2, $4)})
+	| '[' 'K:' header_value ']'			-> ({control: header("K", $3)})
 	;
 
 expressive_mark
