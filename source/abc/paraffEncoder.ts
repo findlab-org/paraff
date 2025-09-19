@@ -24,6 +24,7 @@ interface ABCContext {
 	keySig: number;
 	timeSig: Fraction;
 	baseDivision: number;
+	y: number;
 };
 
 
@@ -61,25 +62,53 @@ const identifyKeySignature = (key: ABC.KeySignature): number => {
 };
 
 
+const pitchToY = (pitch: ABC.Pitch): number => {
+	const isUpcase = pitch.phonet === pitch.phonet.toUpperCase();
+	const octave = (isUpcase ? 0 : 1) + pitch.quotes;
+	const step = "CDEFGAB".indexOf(pitch.phonet.toUpperCase());
+
+	return step + octave * 7;
+};
+
+
 const pitchToTokens = (ctx: ABCContext, pitch: ABC.Pitch): Token[] => {
 	const result: Token[] = [];
+
+	const phonet = pitch.phonet.toUpperCase();
+	const y = pitchToY(pitch);
+
 	result.push(PhonetMapping[pitch.phonet]);
+
 	if (pitch.acc) {
 		const acc = AccidentalMapping[pitch.acc as number];
-		result.push(acc);
+		if (acc)
+			result.push(acc);
 	}
-	// TODO: determine acc by key signature in context
-
-	if (pitch.quotes) {
-		if (pitch.quotes > 0) {
-			for (let i = 0; i < pitch.quotes; i++)
-				result.push(Token.Osup);
+	else {
+		// determine acc by key signature in context
+		const SHARP_PHONETS = "_FCGDAEB";
+		const FLAT_PHONETS = "_BEADGCF";
+		if (ctx.keySig > 0) {
+			if (SHARP_PHONETS.indexOf(phonet) <= ctx.keySig)
+				result.push(Token.As);
 		}
-		else {
-			for (let i = 0; i < -pitch.quotes; i++)
+		else if (ctx.keySig < 0) {
+			if (FLAT_PHONETS.indexOf(phonet) <= -ctx.keySig)
+				result.push(Token.Af);
+		}
+	}
+
+	if (pitch.phonet != "z") {
+		if (Math.abs(y - ctx.y) >= 4) {
+			for (let yy = y; yy - ctx.y >= 4; yy -= 7)
+				result.push(Token.Osup);
+
+			for (let yy = y; ctx.y - yy >= 4; yy += 7)
 				result.push(Token.Osub);
 		}
+		ctx.y = y;
 	}
+
 	return result;
 };
 
@@ -88,7 +117,8 @@ const durationToTokens = (ctx: ABCContext, frac: Fraction): Token[] => {
 	const result: Token[] = [];
 	const { numerator, denominator } = frac;
 
-	const denomMap: Record<number, Token> = {
+	// TODO:
+	/*const denomMap: Record<number, Token> = {
 		1: Token.D1,
 		2: Token.D2,
 		4: Token.D4,
@@ -101,7 +131,7 @@ const durationToTokens = (ctx: ABCContext, frac: Fraction): Token[] => {
 		for (let i = 0; i < numerator; i++) {
 			result.push(denomMap[denominator]);
 		}
-	}
+	}*/
 	return result;
 };
 
@@ -130,6 +160,7 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 		keySig: 0,
 		timeSig: { numerator: 4, denominator: 4 },
 		baseDivision: 3,
+		y: 0,
 	};
 
 	tune.header.forEach(header => {

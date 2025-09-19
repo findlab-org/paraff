@@ -503,12 +503,12 @@ accidentals
 	;
 
 pitch
-	: phonet							-> pitch(null, $1, null)
+	: phonet							-> pitch(null, $1, 0)
 	| phonet quotes						-> pitch(null, $1, $2)
-	| accidentals phonet				-> pitch($1, $2, null)
+	| accidentals phonet				-> pitch($1, $2, 0)
 	| accidentals phonet quotes			-> pitch($1, $2, $3)
-	| x									-> pitch(null, $1, null)
-	| rest_phonet						-> pitch(null, $1, null)
+	| x									-> pitch(null, $1, 0)
+	| rest_phonet						-> pitch(null, $1, 0)
 	;
 
 phonet

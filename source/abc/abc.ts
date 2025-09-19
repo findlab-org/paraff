@@ -50,7 +50,7 @@ namespace ABC {
 	export interface Pitch {
 		acc: number | null;      // accidentals: '^' | '_' | '=' or null
 		phonet: Token; // underlying letter token or rest
-		quotes: number | null;   // number of single/double quotes: positive for sup, negative for sub, null if none
+		quotes: number;   // number of single/double quotes: positive for sup, negative for sub, null if none
 	};
 
 
