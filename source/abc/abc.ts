@@ -93,6 +93,12 @@ namespace ABC {
 	};
 
 
+	export interface KeySignature {
+		root: string;
+		mode?: string;
+	};
+
+
 	interface Measure {
 		index: number;
 		voices: BarPatch[];
@@ -105,7 +111,7 @@ namespace ABC {
 
 
 	export interface Tune {
-		headers: Header[];
+		header: Header[];
 		body: Body;
 	};
 

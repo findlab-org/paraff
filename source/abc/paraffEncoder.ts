@@ -21,8 +21,9 @@ interface ParaffMeasure {
 
 
 interface ABCContext {
-	K: {root: string; mode?: string} | null;
-	L: Fraction | null;
+	keySig: number;
+	timeSig: Fraction;
+	baseDivision: number;
 };
 
 
@@ -49,6 +50,14 @@ const AccidentalMapping: Record<number, Token> = {
 	[2]: Token.Ass,
 	[-1]: Token.Af,
 	[-2]: Token.Aff,
+};
+
+
+const identifyKeySignature = (key: ABC.KeySignature): number => {
+	const ROOTS = ["Cb", "Gb", "Db", "Ab", "Eb", "Bb", "F", "C", "G", "D", "A", "E", "B", "F#", "C#", "G#", "D#", "A#"];
+	const offset = (key.mode && key.mode === "minor") ? -10 : -7;
+
+	return ROOTS.indexOf(key.root) + offset;
 };
 
 
@@ -118,14 +127,36 @@ const eventToTokens = (ctx: ABCContext, event: ABC.EventData): Token[] => {
 const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 	const measures: ParaffMeasure[] = [];
 	const ctx: ABCContext = {
-		K: null,
-		L: null,
+		keySig: 0,
+		timeSig: { numerator: 4, denominator: 4 },
+		baseDivision: 3,
 	};
+
+	tune.header.forEach(header => {
+		if (!("name" in header))
+			return;
+
+		switch (header.name) {
+		case "K":
+			ctx.keySig = identifyKeySignature(header.value as ABC.KeySignature);
+
+			break;
+		case "L":
+			console.assert((header.value as Fraction).numerator === 1);
+			ctx.baseDivision = Math.log2((header.value as Fraction).denominator);
+
+			break;
+		case "M":
+			ctx.timeSig = header.value;
+
+			break;
+		}
+	});
 
 	for (const measure of tune.body.measures) {
 		const paraffMeasure: ParaffMeasure = {
-			key: null,
-			timeSig: null,
+			key: ctx.keySig,
+			timeSig: ctx.timeSig,
 			voices: [],
 			description: new Set(),
 		};
@@ -155,12 +186,22 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 					// TextTerm: ignore
 				}
 				else if ("control" in term) {
-					// ControlTerm: 可以在这里解析 Key/TimeSig
-					if (term.control.name === "key") {
-						paraffMeasure.key = term.control.value;
-					}
-					if (term.control.name === "M") {
-						paraffMeasure.timeSig = term.control.value;
+					switch (term.control.name) {
+					case "key":
+						ctx.keySig = identifyKeySignature(term.control.value);
+						paraffMeasure.key = ctx.keySig;
+
+						break;
+					case "M":
+						ctx.timeSig = term.control.value;
+						paraffMeasure.timeSig = ctx.timeSig;
+
+						break;
+					case "L":
+						console.assert(term.control.value.numerator === 1);
+						ctx.baseDivision = Math.log2(term.control.value.denominator);
+
+						break;
 					}
 				}
 			}
