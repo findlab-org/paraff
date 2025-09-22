@@ -87,6 +87,7 @@ enum Token {
 	Edim,	// diminuendo
 	Ecds,	// crescendo/diminuendo stop
 	EDf, EDp, EDm, EDr, EDs, EDz,	// dynamics
+	Eped, EpedUp,					// pedals
 };
 
 

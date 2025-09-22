@@ -28,6 +28,7 @@ interface ABCContext {
 	lastBroken: number | null;
 	voice: string | null;
 	staff: number;
+	pendingExpresses: string[];
 };
 
 
@@ -47,6 +48,42 @@ const PhonetMapping: Record<string, Token> = {
 	F: Token.f,
 	z: Token.a,
 	x: Token.a,
+};
+
+
+const ExpressiveMapping: Record<string, Token> = {
+	"(": Token.EslurL,
+	")": Token.EslurR,
+	"-": Token.Etie,
+	"arpeggio": Token.Earp,
+	"trill": Token.Etr,
+	"fermata": Token.Efer,
+	"shortfermata": Token.Esf,
+	".": Token.Est,
+	"staccato": Token.Est,
+	"staccatissimo": Token.Estm,
+	"wedge": Token.Estm,
+	"accent": Token.Eac,
+	"mordent": Token.Emor,
+	"~": Token.Emor,
+	"P": Token.Epr,
+	"pralltriller": Token.Epr,
+	"turn": Token.Eturn,
+	"portato": Token.Epor,
+	"_": Token.Eten,
+	"tenuto": Token.Eten,
+	"^": Token.Emar,
+	"marcato": Token.Emar,
+	"crescendo(": Token.Ecre,
+	"<(": Token.Ecre,
+	"diminuendo(": Token.Edim,
+	">(": Token.Edim,
+	"crescendo)": Token.Ecds,
+	"<)": Token.Ecds,
+	"diminuendo)": Token.Ecds,
+	">)": Token.Ecds,
+	"ped": Token.Eped,
+	"ped-up": Token.EpedUp,
 };
 
 
@@ -164,6 +201,7 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 		lastBroken: null,
 		voice: null,
 		staff: 1,
+		pendingExpresses: [],
 	};
 
 	const voiceMapping: Record<string, Record<string, any>> = {};
@@ -221,6 +259,11 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 					checkStaff();
 					tokens.push(...eventToTokens(ctx, term));
 
+					for (const pe of ctx.pendingExpresses)
+						if (ExpressiveMapping[pe])
+							tokens.push(ExpressiveMapping[pe]);
+					ctx.pendingExpresses = [];
+
 					ctx.lastBroken = term.broken;
 				}
 				else if ("grace" in term) {
@@ -234,7 +277,21 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 					}
 				}
 				else if ("articulation" in term || "express" in term) {
-					// TODO: Expressive articulation
+					const value = ((term as any).articulation || (term as any).express) + ((term as any).scope || "");
+					if ((term as any).scope === "(")
+						ctx.pendingExpresses.push(value);
+					else {
+						switch (value) {
+						case "ped":
+						case "(":
+							ctx.pendingExpresses.push(value);
+
+							break;
+						default:
+							if (ExpressiveMapping[value])
+								tokens.push(ExpressiveMapping[value]);
+						}
+					}
 				}
 				else if ("text" in term) {
 					// TextTerm: ignore
