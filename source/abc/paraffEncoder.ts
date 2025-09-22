@@ -185,7 +185,7 @@ const eventToTokens = (ctx: ABCContext, term: ABC.EventTerm): Token[] => {
 	tokens.push(...durationToTokens(ctx, event.duration, term.broken));
 
 	if (isRest)
-		tokens.push(Token.Rest);
+		tokens.push(event.chord.pitches[0].phonet === "x" ? Token.RSpace : Token.Rest);
 
 	return tokens;
 };
