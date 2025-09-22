@@ -1,6 +1,6 @@
 
 import { Token, PromptToken, isTokenOf, TokenKey, TokenStaff, TokenOctaveShift, TokenNumerator, TokenDenominator,
-	TokenDivision, TokenTimewarp, TokenTremolo, TokenTremoloCast } from "../paraff/vocab";
+	TokenDivision, TokenTimewarp, TokenTremolo, TokenTremoloCast, TokenAccidental } from "../paraff/vocab";
 import { Fraction } from "../fraction";
 import { ABC } from "./abc";
 
@@ -46,14 +46,7 @@ const PhonetMapping: Record<string, Token> = {
 	E: Token.e,
 	F: Token.f,
 	z: Token.a,
-};
-
-
-const AccidentalMapping: Record<number, Token> = {
-	[1]: Token.As,
-	[2]: Token.Ass,
-	[-1]: Token.Af,
-	[-2]: Token.Aff,
+	x: Token.a,
 };
 
 
@@ -79,15 +72,16 @@ const pitchToTokens = (ctx: ABCContext, pitch: ABC.Pitch): Token[] => {
 
 	const phonet = pitch.phonet.toUpperCase();
 	const y = pitchToY(pitch);
+	const isRest = "xz".includes(pitch.phonet);
 
 	result.push(PhonetMapping[pitch.phonet]);
 
 	if (pitch.acc) {
-		const acc = AccidentalMapping[pitch.acc as number];
+		const acc = TokenAccidental[pitch.acc as number];
 		if (acc)
 			result.push(acc);
 	}
-	else {
+	else if (!isRest) {
 		// determine acc by key signature in context
 		const SHARP_PHONETS = "_FCGDAEB";
 		const FLAT_PHONETS = "_BEADGCF";
@@ -101,7 +95,7 @@ const pitchToTokens = (ctx: ABCContext, pitch: ABC.Pitch): Token[] => {
 		}
 	}
 
-	if (pitch.phonet != "z") {
+	if (isRest) {
 		if (Math.abs(y - ctx.y) >= 4) {
 			for (let yy = y; yy - ctx.y >= 4; yy -= 7)
 				result.push(Token.Osup);
@@ -148,7 +142,7 @@ const eventToTokens = (ctx: ABCContext, term: ABC.EventTerm): Token[] => {
 	for (const pitch of event.chord.pitches) {
 		tokens.push(...pitchToTokens(ctx, pitch));
 
-		isRest = event.chord.pitches[0].phonet === "z";
+		isRest = "xz".includes(event.chord.pitches[0].phonet);
 	}
 
 	tokens.push(...durationToTokens(ctx, event.duration, term.broken));
