@@ -26,6 +26,8 @@ interface ABCContext {
 	baseDivision: number;
 	y: number;
 	lastBroken: number | null;
+	voice: string | null;
+	staff: number;
 };
 
 
@@ -166,7 +168,11 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 		baseDivision: 3,
 		y: 0,
 		lastBroken: null,
+		voice: null,
+		staff: 1,
 	};
+
+	const voiceMapping: Record<string, Record<string, any>> = {};
 
 	tune.header.forEach(header => {
 		if (!("name" in header))
@@ -186,6 +192,15 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 			ctx.timeSig = header.value;
 
 			break;
+		case "V": {
+			const voice = header.value;
+			voiceMapping[voice.name] = {
+				clef: voice.clef,
+				...voice.properties,
+			};
+		}
+
+			break;
 		}
 	});
 
@@ -202,8 +217,14 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 
 			//tokens.push(Token.BOM);
 
+			const checkStaff = () => {
+				if (tokens.length === 0)
+					tokens.push(TokenStaff[ctx.staff - 1]);
+			};
+
 			for (const term of voice.terms) {
 				if ("event" in term) {
+					checkStaff();
 					tokens.push(...eventToTokens(ctx, term));
 
 					ctx.lastBroken = term.broken;
@@ -212,8 +233,10 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 					// Grace notes
 					for (const gEvent of term.events) {
 						tokens.push(Token.G);
-						if ("event" in gEvent)
+						if ("event" in gEvent) {
+							checkStaff();
 							tokens.push(...eventToTokens(ctx, gEvent));
+						}
 					}
 				}
 				else if ("articulation" in term || "express" in term) {
@@ -237,6 +260,18 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 					case "L":
 						console.assert(term.control.value.numerator === 1);
 						ctx.baseDivision = Math.log2(term.control.value.denominator);
+
+						break;
+					case "V": {
+						ctx.voice = term.control.value;
+						const voice = voiceMapping[ctx.voice];
+						if (voice) {
+							if (voice.staff)
+								ctx.staff = voice.staff;
+							else if (voice.clef)
+								ctx.staff = voice.clef === "bass" ? 2 : 1;
+						}
+					}
 
 						break;
 					}

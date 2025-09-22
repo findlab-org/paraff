@@ -50,9 +50,9 @@
 	};
 
 
-	const voice = (number, assign, properties) => ({
-		number,
-		assign,
+	const voice = (name, clef, properties) => ({
+		name,
+		clef,
 		properties,
 	});
 
