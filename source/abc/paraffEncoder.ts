@@ -46,6 +46,7 @@ const PhonetMapping: Record<string, Token> = {
 	D: Token.d,
 	E: Token.e,
 	F: Token.f,
+	G: Token.g,
 	z: Token.a,
 	x: Token.a,
 };
