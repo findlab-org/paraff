@@ -1,6 +1,6 @@
 
 import { Token, PromptToken, isTokenOf, TokenKey, TokenStaff, TokenOctaveShift, TokenNumerator, TokenDenominator,
-	TokenDivision, TokenTimewarp, TokenTremolo, TokenTremoloCast, TokenAccidental } from "../paraff/vocab";
+	TokenDivision, TokenTimewarp, TokenTremolo, TokenTremoloCast, TokenAccidental, TokenPhonet } from "../paraff/vocab";
 import { Fraction } from "../fraction";
 import { ABC } from "./abc";
 
@@ -350,12 +350,26 @@ interface DescriptedSentence {
 const tokenizeFraction = (fraction: Fraction): Token[] => [TokenNumerator[fraction.numerator], TokenDenominator[fraction.denominator]];
 
 
+const isPureSpaceVoice = (tokens: Token[]): boolean => {
+	const rt = [...tokens].reverse();
+	const rip = rt.findIndex(isTokenOf(TokenPhonet));
+	const rid = rt.findIndex(isTokenOf(TokenDivision));
+	if (rip >= 0 && (rip < rid || rid < 0))	// incomplete chord at tail
+		return false;
+
+	const ds = tokens.filter(isTokenOf(TokenDivision)).length;
+	const ss = tokens.filter(t => t === Token.RSpace).length;
+
+	return ss >= ds;
+};
+
+
 const abcToParaff = (document: ABC.Document): DescriptedSentence[] => {
 	const measures = document.map(tuneToParaffMeasures).flat(1);
 
 	return measures.map(measure => {
 		const voices = measure.voices.filter(v => v.length)
-			; //.filter(v => !isPureSpaceVoice(v));	// ignore pure space voice
+			.filter(v => !isPureSpaceVoice(v));	// ignore pure space voice
 		const tokens = voices.map((v, i) => i ? [Token.VB, ...v.filter(Boolean)] : v).flat(1);
 
 		if (measure.timeSig)
