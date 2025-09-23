@@ -285,6 +285,7 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 						switch (value) {
 						case "ped":
 						case "(":
+						case ".":
 							ctx.pendingExpresses.push(value);
 
 							break;
