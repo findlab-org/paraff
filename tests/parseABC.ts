@@ -13,7 +13,7 @@ const main = async (abc_path: string): Promise<void> => {
 	console.log("result:", raw);
 
 	const stem = path.basename(abc_path);
-	fs.writeFileSync(path.join("./tests/assets/", stem.substring(0, stem.length - 4) + ".local.yaml"), YAML.stringify(raw));
+	fs.writeFileSync(path.join("./tests/assets/", stem.substring(0, stem.length - 4).replace(/\s/g, "") + ".local.yaml"), YAML.stringify(raw));
 };
 
 
