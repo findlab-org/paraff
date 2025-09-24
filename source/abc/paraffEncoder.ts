@@ -159,6 +159,9 @@ const pitchToTokens = (ctx: ABCContext, pitch: ABC.Pitch): Token[] => {
 		ctx.y = y;
 	}
 
+	if (pitch.tie && !ctx.pendingExpresses.includes("-"))
+		ctx.pendingExpresses.push("-");
+
 	return result;
 };
 
@@ -321,6 +324,8 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 						case "ped":
 						case "(":
 						case ".":
+						case "prall":
+						case "trill":
 							ctx.pendingExpresses.push(value);
 
 							break;

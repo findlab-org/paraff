@@ -56,6 +56,7 @@ namespace ABC {
 		acc: number | null;      // accidentals: '^' | '_' | '=' or null
 		phonet: Token; // underlying letter token or rest
 		quotes: number;   // number of single/double quotes: positive for sup, negative for sub, null if none
+		tie?: boolean;
 	};
 
 

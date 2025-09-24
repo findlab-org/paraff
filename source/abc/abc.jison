@@ -555,12 +555,16 @@ accidentals
 	;
 
 pitch
+	: acc_pitch
+	| acc_pitch '-'						{ $1.tie = true; $$ = $1; }
+	| rest_phonet						-> pitch(null, $1, 0)
+	;
+
+acc_pitch
 	: phonet							-> pitch(null, $1, 0)
 	| phonet quotes						-> pitch(null, $1, $2)
 	| accidentals phonet				-> pitch($1, $2, 0)
 	| accidentals phonet quotes			-> pitch($1, $2, $3)
-	| x									-> pitch(null, $1, 0)
-	| rest_phonet						-> pitch(null, $1, 0)
 	;
 
 phonet
@@ -571,6 +575,7 @@ phonet
 rest_phonet
 	: z
 	| Z
+	| x
 	;
 
 event
