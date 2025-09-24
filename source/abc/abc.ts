@@ -36,7 +36,7 @@ namespace ABC {
 	interface Grace {
 		grace: boolean;
 		acciaccatura: Token;
-		events: EventTerm[];
+		events: GraceMusicTerm[];
 	};
 
 
@@ -96,6 +96,13 @@ namespace ABC {
 		| ControlTerm
 		| Tuplet
 		| OctaveShift
+		| Fingering
+	;
+
+
+	export type GraceMusicTerm =
+		| Expressive
+		| EventTerm
 		| Fingering
 	;
 

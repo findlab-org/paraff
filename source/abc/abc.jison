@@ -605,8 +605,15 @@ events
 	;
 
 grace_events
-	: '{' events '}'					-> grace($2)
-	| '{' '/' events '}'				-> grace($3, true)
+	: '{' grace_music '}'					-> grace($2)
+	| '{' '/' grace_music '}'				-> grace($3, true)
+	;
+
+grace_music
+	: event								-> [$1]
+	| expressive_mark event				-> [$1, $2]
+	| grace_music event					-> [...$1, $2]
+	| grace_music expressive_mark		-> [...$1, $2]
 	;
 
 duration

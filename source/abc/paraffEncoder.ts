@@ -230,6 +230,32 @@ const eventToTokens = (ctx: ABCContext, term: ABC.EventTerm, isGrace: boolean = 
 };
 
 
+const expressiveToTokens = (ctx: ABCContext, term: ABC.Expressive): Token[] => {
+	const tokens: Token[] = [];
+
+	const value = ((term as any).articulation || (term as any).express) + ((term as any).scope || "");
+	if ((term as any).scope === "(")
+		ctx.pendingExpresses.push(value);
+	else {
+		switch (value) {
+		case "ped":
+		case "(":
+		case ".":
+		case "prall":
+		case "trill":
+			ctx.pendingExpresses.push(value);
+
+			break;
+		default:
+			if (ExpressiveMapping[value])
+				tokens.push(ExpressiveMapping[value]);
+		}
+	}
+
+	return tokens;
+};
+
+
 const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 	const measures: ParaffMeasure[] = [];
 	const ctx: ABCContext = {
@@ -308,32 +334,17 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 				else if ("grace" in term) {
 					// Grace notes
 					for (const gEvent of term.events) {
-						tokens.push(Token.G);
 						if ("event" in gEvent) {
+							tokens.push(Token.G);
 							checkStaff();
 							tokens.push(...eventToTokens(ctx, gEvent, true));
 						}
+						else if ("articulation" in gEvent || "express" in gEvent)
+							tokens.push(...expressiveToTokens(ctx, gEvent));
 					}
 				}
 				else if ("articulation" in term || "express" in term) {
-					const value = ((term as any).articulation || (term as any).express) + ((term as any).scope || "");
-					if ((term as any).scope === "(")
-						ctx.pendingExpresses.push(value);
-					else {
-						switch (value) {
-						case "ped":
-						case "(":
-						case ".":
-						case "prall":
-						case "trill":
-							ctx.pendingExpresses.push(value);
-
-							break;
-						default:
-							if (ExpressiveMapping[value])
-								tokens.push(ExpressiveMapping[value]);
-						}
-					}
+					tokens.push(...expressiveToTokens(ctx, term));
 				}
 				else if ("text" in term) {
 					// TextTerm: ignore
