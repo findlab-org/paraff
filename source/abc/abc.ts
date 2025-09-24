@@ -28,6 +28,11 @@ namespace ABC {
 	};
 
 
+	export interface Fingering {
+		fingering: string;
+	};
+
+
 	interface Grace {
 		grace: boolean;
 		acciaccatura: Token;
@@ -91,6 +96,7 @@ namespace ABC {
 		| ControlTerm
 		| Tuplet
 		| OctaveShift
+		| Fingering
 	;
 
 

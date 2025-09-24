@@ -223,6 +223,7 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+~]
 <exclamation_exp>[1][5][m][ab]		return yytext
 <exclamation_exp>\b[ms]?[pf]+[z]?\b	return 'DYNAMIC'
 <exclamation_exp>{a}				return 'a'
+<exclamation_exp>{N}				return 'N'
 <exclamation_exp>[a-zA-Z][\w-]*		return 'NAME'
 
 \s+									{}
