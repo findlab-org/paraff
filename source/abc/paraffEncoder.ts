@@ -20,6 +20,13 @@ interface ParaffMeasure {
 };
 
 
+interface TupletContext {
+	n: number;
+	notes: number;
+	ticks: number;	// in 128th notes
+};
+
+
 interface ABCContext {
 	keySig: number;
 	timeSig: Fraction;
@@ -29,6 +36,7 @@ interface ABCContext {
 	voice: string | null;
 	staff: number;
 	pendingExpresses: string[];
+	tuplet?: TupletContext;
 };
 
 
@@ -155,7 +163,7 @@ const pitchToTokens = (ctx: ABCContext, pitch: ABC.Pitch): Token[] => {
 };
 
 
-const durationToTokens = (ctx: ABCContext, duration: Fraction | undefined, broken: number | null): Token[] => {
+const durationToTokens = (ctx: ABCContext, duration: Fraction | undefined, broken: number | null, isGrace: boolean): Token[] => {
 	const { numerator, denominator = 1 } = duration || { numerator: 1, denominator: 1 };
 
 	const is2Power = (n: number): boolean => (n & (n - 1)) === 0 && n > 0;
@@ -170,15 +178,35 @@ const durationToTokens = (ctx: ABCContext, duration: Fraction | undefined, broke
 	const dots = Math.log2(n_odd + 1) - 1 + Math.max(0, broken || 0) - Math.min(0, ctx.lastBroken || 0);
 	const division = ctx.baseDivision + Math.log2(denominator) - Math.floor(Math.log2(numerator)) + Math.max(Math.max(0, ctx.lastBroken || 0), -Math.min(0, broken || 0));
 
-	const result: Token[] = [TokenDivision[division]];
-	for (let d = dots; d > 0; d--)
-		result.push(Token.Dot);
+	const tokens: Token[] = [];
 
-	return result;
+	if (ctx.tuplet) {
+		const firstW = ctx.tuplet.notes === 0;
+
+		ctx.tuplet.notes++;
+		ctx.tuplet.ticks += Math.round((16 * numerator) / denominator);
+
+		if (!firstW)
+			tokens.push(Token.W);
+		else
+			tokens.push(TokenTimewarp[ctx.tuplet.n - 1] || Token.Wx);
+
+		if (ctx.tuplet.notes > ctx.tuplet.n / 2) {
+			const q = ctx.tuplet.ticks / ctx.tuplet.n;
+			if (Math.floor(q) === q)
+				ctx.tuplet = undefined;
+		}
+	}
+
+	tokens.push(TokenDivision[division])
+	for (let d = dots; d > 0; d--)
+		tokens.push(Token.Dot);
+
+	return tokens;
 };
 
 
-const eventToTokens = (ctx: ABCContext, term: ABC.EventTerm): Token[] => {
+const eventToTokens = (ctx: ABCContext, term: ABC.EventTerm, isGrace: boolean = false): Token[] => {
 	const event = term.event;
 	let isRest = false;
 
@@ -190,7 +218,7 @@ const eventToTokens = (ctx: ABCContext, term: ABC.EventTerm): Token[] => {
 		isRest = "xz".includes(event.chord.pitches[0].phonet);
 	}
 
-	tokens.push(...durationToTokens(ctx, event.duration, term.broken));
+	tokens.push(...durationToTokens(ctx, event.duration, term.broken, isGrace));
 
 	if (isRest)
 		tokens.push(event.chord.pitches[0].phonet === "x" ? Token.RSpace : Token.Rest);
@@ -280,7 +308,7 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 						tokens.push(Token.G);
 						if ("event" in gEvent) {
 							checkStaff();
-							tokens.push(...eventToTokens(ctx, gEvent));
+							tokens.push(...eventToTokens(ctx, gEvent, true));
 						}
 					}
 				}
@@ -339,6 +367,9 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 
 						break;
 					}
+				}
+				else if ("tuplet" in term) {
+					ctx.tuplet = {n: term.tuplet, notes: 0, ticks: 0};
 				}
 			}
 

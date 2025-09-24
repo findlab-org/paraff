@@ -18,6 +18,11 @@ namespace ABC {
 	};
 
 
+	export interface Tuplet {
+		tuplet: number;
+	};
+
+
 	interface Grace {
 		grace: boolean;
 		acciaccatura: Token;
@@ -77,7 +82,9 @@ namespace ABC {
 		| TextTerm
 		| EventTerm
 		| Grace
-		| ControlTerm;
+		| ControlTerm
+		| Tuplet
+	;
 
 
 	type Header = KeyValue | Comment;

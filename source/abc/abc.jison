@@ -436,6 +436,7 @@ music
 	| music grace_events				-> $1 ? [...$1, $2] : [$2]
 	| music control						-> $1 ? [...$1, $2] : [$2]
 	| music broken_rhythm				{ Object.assign($1.at(-1), $2); $$ = $1; }
+	| music tuplet						-> $1 ? [...$1, $2] : [$2]
 	;
 
 control
@@ -463,6 +464,7 @@ articulation_content
 	| scope_articulation				-> articulation($1)
 	| DYNAMIC							-> articulation($1)
 	| a									-> articulation($1)
+	| N									-> ({fingering: Number($1)})
 	;
 
 scope_articulation
@@ -570,4 +572,8 @@ broken_right
 broken_left
 	: '<'								-> -1
 	| broken_left '<'					-> $1 - 1
+	;
+
+tuplet
+	: '(' N								-> ({tuplet: Number($2)})
 	;
