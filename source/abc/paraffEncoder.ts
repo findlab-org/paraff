@@ -1,7 +1,7 @@
 
 import { Token, PromptToken, isTokenOf, TokenKey, TokenStaff, TokenOctaveShift, TokenNumerator, TokenDenominator,
 	TokenDivision, TokenTimewarp, TokenTremolo, TokenTremoloCast, TokenAccidental, TokenPhonet } from "../paraff/vocab";
-import { Fraction } from "../fraction";
+import { Fraction, gcd } from "../fraction";
 import { ABC } from "./abc";
 
 
@@ -22,6 +22,8 @@ interface ParaffMeasure {
 
 interface TripletContext {
 	n: number;
+	multiplier?: number;
+	nn?: number;
 	notes: number;
 	ticks: number;	// in 128th notes
 };
@@ -166,6 +168,17 @@ const pitchToTokens = (ctx: ABCContext, pitch: ABC.Pitch): Token[] => {
 };
 
 
+const findNumerator = (ticks: number, max: number): number => {
+	for (let n = max - 1; n >= 1; n--) {
+		if (gcd(n, ticks) > 1)
+			return n;
+	}
+
+	console.assert(false, "cannot find numerator for ticks:", ticks, max);
+	return 0;
+};
+
+
 const durationToTokens = (ctx: ABCContext, duration: Fraction | undefined, broken: number | null, isGrace: boolean): Token[] => {
 	const { numerator, denominator = 1 } = duration || { numerator: 1, denominator: 1 };
 
@@ -192,9 +205,11 @@ const durationToTokens = (ctx: ABCContext, duration: Fraction | undefined, broke
 		if (!firstW)
 			tokens.push(Token.W);
 		else
-			tokens.push(TokenTimewarp[ctx.triplet.n - 1] || Token.Wx);
+			tokens.push(TokenTimewarp[findNumerator(Math.round(ctx.triplet.ticks / ctx.triplet.n), ctx.triplet.n)] || Token.Wx);
 
-		if (ctx.triplet.notes > ctx.triplet.n / 2) {
+		if (ctx.triplet.nn && ctx.triplet.notes === ctx.triplet.nn)
+			ctx.triplet = undefined;
+		else if (ctx.triplet.notes > ctx.triplet.n / 2) {
 			const q = ctx.triplet.ticks / ctx.triplet.n;
 			if (Math.floor(q) === q)
 				ctx.triplet = undefined;
@@ -385,7 +400,7 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 					}
 				}
 				else if ("triplet" in term) {
-					ctx.triplet = {n: term.triplet, notes: 0, ticks: 0};
+					ctx.triplet = {n: term.triplet, notes: 0, ticks: 0, multiplier: term.multiplier, nn: term.n};
 				}
 				else if ("octaveShift" in term) {
 					tokens.push(TokenOctaveShift[term.octaveShift]);

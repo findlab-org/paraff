@@ -20,6 +20,8 @@ namespace ABC {
 
 	export interface Triplet {
 		triplet: number;
+		multiplier?: number;  // optional multiplier for triplet note duration
+		n?: number;           // optional number of notes in the triplet
 	};
 
 

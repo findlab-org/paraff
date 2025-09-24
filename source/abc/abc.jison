@@ -175,7 +175,7 @@ Z									\b[Z]
 x									\b[x](?=[\W\d\s])
 N									[0-9]
 P									\b[HJLMOPRSTuv](?=[A-Ga-g][A-Ga-g0-9]*\b)
-PP									\b[HJLMOPRSTuv](?=[!\[])
+PP									\b[HJLMOPRSTuv](?=[xz!\[])
 
 SPECIAL								[:!^_,'/<>={}()\[\]|.\-+~]
 
@@ -651,5 +651,7 @@ broken_left
 	;
 
 triplet
-	: '(' N								-> ({triplet: Number($2)})
+	: '(' number ':' number ':' number	-> ({triplet: $2, multiplier: $4, n: $6})
+	| '(' number ':' number				-> ({triplet: $2, multiplier: $4})
+	| '(' number						-> ({triplet: $2})
 	;
