@@ -160,6 +160,7 @@
 %x spec_comment
 %x title_string
 %x key_signature
+%x exclamation_exp
 
 
 H									\b[A-Z](?=\:[^|])
@@ -207,6 +208,17 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+~]
 <spec_comment>"score"				return 'SCORE'
 <spec_comment>[\w]+					return 'NN'
 <spec_comment>[(){}\[\]|]			return yytext
+
+[!]									{ this.pushState('exclamation_exp'); return '!'; }
+<exclamation_exp>[!]				{ this.popState(); return '!'; }
+<exclamation_exp>{SPECIAL}			return yytext
+<exclamation_exp>"D.C."				return yytext
+<exclamation_exp>"D.S."				return yytext
+<exclamation_exp>"alcoda"			return yytext
+<exclamation_exp>"alfine"			return yytext
+<exclamation_exp>{a}				return 'a'
+<exclamation_exp>\b[ms]?[pf]+[z]?\b	return 'DYNAMIC'
+<exclamation_exp>[a-zA-Z][\w-]*		return 'NAME'
 
 \s+									{}
 
@@ -454,6 +466,7 @@ expressive_mark
 
 articulation
 	: '!' articulation_content '!' 		-> $2
+	| '!' directive_text '!' 			-> $2
 	| P									-> articulation("prall")
 	| '~'								-> articulation("mordent")
 	;
@@ -465,6 +478,21 @@ articulation_content
 	| DYNAMIC							-> articulation($1)
 	| a									-> articulation($1)
 	| N									-> ({fingering: Number($1)})
+	;
+
+directive_text
+	: dc								-> ({directive: $1})
+	| dc al								-> ({directive: `${$1} ${$2}`})
+	;
+
+dc
+	: "D.C."
+	| "D.S."
+	;
+
+al
+	: "alcoda"							-> "al coda"
+	| "alfine"							-> "al fine"
 	;
 
 scope_articulation
