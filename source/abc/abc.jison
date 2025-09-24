@@ -175,7 +175,7 @@ Z									\b[Z]
 x									\b[x](?=[\W\d\s])
 N									[0-9]
 P									\b[HJLMOPRSTuv](?=[A-Ga-g][A-Ga-g0-9]*\b)
-PP									\b[HJLMOPRSTuv](?=[!])
+PP									\b[HJLMOPRSTuv](?=[!\[])
 
 SPECIAL								[:!^_,'/<>={}()\[\]|.\-+~]
 
