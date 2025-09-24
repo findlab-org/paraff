@@ -174,7 +174,8 @@ z									\b[z]
 Z									\b[Z]
 x									\b[x](?=[\W\d\s])
 N									[0-9]
-P									\b[HJLMOPRST](?=[A-Ga-g][A-Ga-g0-9]*\b)
+P									\b[HJLMOPRSTuv](?=[A-Ga-g][A-Ga-g0-9]*\b)
+PP									\b[HJLMOPRSTuv](?=[!])
 
 SPECIAL								[:!^_,'/<>={}()\[\]|.\-+~]
 
@@ -237,6 +238,7 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+~]
 {z}									return 'z'
 {Z}									return 'Z'
 {P}									return yytext
+{PP}								return yytext
 {x}									return 'x'
 {N}									return 'N'
 \b[ms]?[pf]+[z]?\b					return 'DYNAMIC'
@@ -469,6 +471,8 @@ expressive_mark
 	| ')'								-> ({express: $1})
 	| '.'								-> ({express: $1})
 	| '-'								-> ({express: $1})
+	| 'O'								-> ({express: "coda"})
+	| 'S'								-> ({express: "segno"})
 	;
 
 articulation
@@ -480,9 +484,9 @@ articulation
 	| 'J'								-> articulation("slide")
 	| 'L'								-> articulation("accent")
 	| 'M'								-> articulation("mordent")
-	| 'O'								-> articulation("coda")
 	| 'R'								-> articulation("roll")
-	| 'S'								-> articulation("segno")
+	| 'u'								-> articulation("upbow")
+	| 'v'								-> articulation("downbow")
 	| '~'								-> articulation("mordent")
 	;
 
