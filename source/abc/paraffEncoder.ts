@@ -115,8 +115,8 @@ const identifyKeySignature = (key: ABC.KeySignature): number => {
 
 const pitchToY = (pitch: ABC.Pitch): number => {
 	const isUpcase = pitch.phonet === pitch.phonet.toUpperCase();
-	const octave = (isUpcase ? 0 : 1) + pitch.quotes;
 	const step = "CDEFGAB".indexOf(pitch.phonet.toUpperCase());
+	const octave = (isUpcase ? 0 : 1) + pitch.quotes;
 
 	return step + octave * 7;
 };
@@ -150,7 +150,7 @@ const pitchToTokens = (ctx: ABCContext, pitch: ABC.Pitch): Token[] => {
 		}
 	}
 
-	if (isRest) {
+	if (!isRest) {
 		if (Math.abs(y - ctx.y) >= 4) {
 			for (let yy = y; yy - ctx.y >= 4; yy -= 7)
 				result.push(Token.Osup);
@@ -325,6 +325,8 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 		};
 
 		for (const [vi, voice] of measure.voices.entries()) {
+			ctx.y = 0;
+
 			const tokens: Token[] = [];
 
 			//tokens.push(Token.BOM);
