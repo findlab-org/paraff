@@ -221,8 +221,8 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+~]
 <exclamation_exp>"alfine"			return yytext
 <exclamation_exp>[8][v][ab]			return yytext
 <exclamation_exp>[1][5][m][ab]		return yytext
-<exclamation_exp>{a}				return 'a'
 <exclamation_exp>\b[ms]?[pf]+[z]?\b	return 'DYNAMIC'
+<exclamation_exp>{a}				return 'a'
 <exclamation_exp>[a-zA-Z][\w-]*		return 'NAME'
 
 \s+									{}
