@@ -148,6 +148,9 @@
 
 
 	const clef = clef => ({clef});
+
+
+	const octaveShift = shift => ({octaveShift: shift});
 %}
 
 
@@ -216,6 +219,8 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+~]
 <exclamation_exp>"D.S."				return yytext
 <exclamation_exp>"alcoda"			return yytext
 <exclamation_exp>"alfine"			return yytext
+<exclamation_exp>[8][v][ab]			return yytext
+<exclamation_exp>[1][5][m][ab]		return yytext
 <exclamation_exp>{a}				return 'a'
 <exclamation_exp>\b[ms]?[pf]+[z]?\b	return 'DYNAMIC'
 <exclamation_exp>[a-zA-Z][\w-]*		return 'NAME'
@@ -485,12 +490,22 @@ articulation_content
 	| scope_articulation				-> articulation($1)
 	| DYNAMIC							-> articulation($1)
 	| a									-> articulation($1)
+	| "^"								-> articulation($1)
 	| N									-> ({fingering: Number($1)})
 	;
 
 directive_text
 	: dc								-> ({directive: $1})
 	| dc al								-> ({directive: `${$1} ${$2}`})
+	| octave_shift "("					-> octaveShift($1)
+	| octave_shift ")"					-> octaveShift(0)
+	;
+
+octave_shift
+	: "8va"								-> -1
+	| "8vb"								-> 1
+	| "15ma"							-> -2
+	| "15mb"							-> 2
 	;
 
 dc

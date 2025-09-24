@@ -376,6 +376,9 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 				else if ("tuplet" in term) {
 					ctx.tuplet = {n: term.tuplet, notes: 0, ticks: 0};
 				}
+				else if ("octaveShift" in term) {
+					tokens.push(TokenOctaveShift[term.octaveShift]);
+				}
 			}
 
 			//tokens.push(Token.EOM);

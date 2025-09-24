@@ -23,6 +23,11 @@ namespace ABC {
 	};
 
 
+	export interface OctaveShift {
+		octaveShift: number;  // positive for shift down (8vb), negative for shift up (8va)
+	};
+
+
 	interface Grace {
 		grace: boolean;
 		acciaccatura: Token;
@@ -85,6 +90,7 @@ namespace ABC {
 		| Grace
 		| ControlTerm
 		| Tuplet
+		| OctaveShift
 	;
 
 
