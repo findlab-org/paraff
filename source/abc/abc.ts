@@ -18,8 +18,8 @@ namespace ABC {
 	};
 
 
-	export interface Tuplet {
-		tuplet: number;
+	export interface Triplet {
+		triplet: number;
 	};
 
 
@@ -99,7 +99,7 @@ namespace ABC {
 		| EventTerm
 		| Grace
 		| ControlTerm
-		| Tuplet
+		| Triplet
 		| OctaveShift
 		| Fingering
 		| Tremolo

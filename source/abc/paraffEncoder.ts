@@ -20,7 +20,7 @@ interface ParaffMeasure {
 };
 
 
-interface TupletContext {
+interface TripletContext {
 	n: number;
 	notes: number;
 	ticks: number;	// in 128th notes
@@ -36,7 +36,7 @@ interface ABCContext {
 	voice: string | null;
 	staff: number;
 	pendingExpresses: string[];
-	tuplet?: TupletContext;
+	triplet?: TripletContext;
 };
 
 
@@ -183,21 +183,21 @@ const durationToTokens = (ctx: ABCContext, duration: Fraction | undefined, broke
 
 	const tokens: Token[] = [];
 
-	if (ctx.tuplet) {
-		const firstW = ctx.tuplet.notes === 0;
+	if (ctx.triplet) {
+		const firstW = ctx.triplet.notes === 0;
 
-		ctx.tuplet.notes++;
-		ctx.tuplet.ticks += Math.round((16 * numerator) / denominator);
+		ctx.triplet.notes++;
+		ctx.triplet.ticks += Math.round((16 * numerator) / denominator);
 
 		if (!firstW)
 			tokens.push(Token.W);
 		else
-			tokens.push(TokenTimewarp[ctx.tuplet.n - 1] || Token.Wx);
+			tokens.push(TokenTimewarp[ctx.triplet.n - 1] || Token.Wx);
 
-		if (ctx.tuplet.notes > ctx.tuplet.n / 2) {
-			const q = ctx.tuplet.ticks / ctx.tuplet.n;
+		if (ctx.triplet.notes > ctx.triplet.n / 2) {
+			const q = ctx.triplet.ticks / ctx.triplet.n;
 			if (Math.floor(q) === q)
-				ctx.tuplet = undefined;
+				ctx.triplet = undefined;
 		}
 	}
 
@@ -384,8 +384,8 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 						break;
 					}
 				}
-				else if ("tuplet" in term) {
-					ctx.tuplet = {n: term.tuplet, notes: 0, ticks: 0};
+				else if ("triplet" in term) {
+					ctx.triplet = {n: term.triplet, notes: 0, ticks: 0};
 				}
 				else if ("octaveShift" in term) {
 					tokens.push(TokenOctaveShift[term.octaveShift]);

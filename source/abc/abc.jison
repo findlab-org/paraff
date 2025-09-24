@@ -457,7 +457,7 @@ music
 	| music grace_events				-> $1 ? [...$1, $2] : [$2]
 	| music control						-> $1 ? [...$1, $2] : [$2]
 	| music broken_rhythm				{ Object.assign($1.at(-1), $2); $$ = $1; }
-	| music tuplet						-> $1 ? [...$1, $2] : [$2]
+	| music triplet						-> $1 ? [...$1, $2] : [$2]
 	;
 
 control
@@ -498,6 +498,7 @@ articulation_content
 	| "^"								-> articulation($1)
 	| N									-> ({fingering: Number($1)})
 	| tremolo							-> ({tremolo: $1})
+	| tremolo '-'						-> ({tremolo: $1})	// unknown meaning of '-'?
 	;
 
 tremolo
@@ -649,6 +650,6 @@ broken_left
 	| broken_left '<'					-> $1 - 1
 	;
 
-tuplet
-	: '(' N								-> ({tuplet: Number($2)})
+triplet
+	: '(' N								-> ({triplet: Number($2)})
 	;
