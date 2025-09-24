@@ -67,7 +67,7 @@ const ExpressiveMapping: Record<string, Token> = {
 	"accent": Token.Eac,
 	"mordent": Token.Emor,
 	"~": Token.Emor,
-	"P": Token.Epr,
+	"prall": Token.Epr,
 	"pralltriller": Token.Epr,
 	"turn": Token.Eturn,
 	"portato": Token.Epor,
