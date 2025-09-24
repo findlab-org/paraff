@@ -188,12 +188,12 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+~]
 <title_string>[^\n]+				return 'STR_CONTENT'
 
 ^[K][:][\s]*						{ this.pushState('key_signature'); return 'K:'; }
-<key_signature>[A-G]				return 'A';
-<key_signature>[b]					return 'FLAT';
-<key_signature>[#]					return 'SHARP';
 <key_signature>"treble"				return 'TREBLE';
 <key_signature>"bass"				return 'BASS';
 <key_signature>"tenor"				return 'TENOR';
+<key_signature>[A-G]				return 'A';
+<key_signature>[b]					return 'FLAT';
+<key_signature>[#]					return 'SHARP';
 <key_signature>[m][a-z]*			return 'NAME';
 <key_signature>\n					{ this.popState(); }
 <key_signature>\]					{ this.popState(); return ']'; }
