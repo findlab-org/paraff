@@ -88,6 +88,13 @@ const ExpressiveMapping: Record<string, Token> = {
 };
 
 
+const ClefMapping: Record<string, Token> = {
+	treble: Token.Cg,
+	bass: Token.Cf,
+	tenor: Token.Cc,
+};
+
+
 const identifyKeySignature = (key: ABC.KeySignature): number => {
 	const ROOTS = ["Cb", "Gb", "Db", "Ab", "Eb", "Bb", "F", "C", "G", "D", "A", "E", "B", "F#", "C#", "G#", "D#", "A#"];
 	const offset = (key.mode && key.mode === "minor") ? -10 : -7;
@@ -300,9 +307,13 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 				}
 				else if ("control" in term) {
 					switch (term.control.name) {
-					case "key":
-						ctx.keySig = identifyKeySignature(term.control.value);
-						paraffMeasure.key = ctx.keySig;
+					case "K":
+						if (term.control.value.clef)
+							tokens.push(ClefMapping[term.control.value.clef]);
+						else {
+							ctx.keySig = identifyKeySignature(term.control.value);
+							paraffMeasure.key = ctx.keySig;
+						}
 
 						break;
 					case "M":

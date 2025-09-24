@@ -145,6 +145,9 @@
 		root,
 		mode,
 	});
+
+
+	const clef = clef => ({clef});
 %}
 
 
@@ -188,6 +191,9 @@ SPECIAL								[:!^_,'/<>={}()\[\]|.\-+~]
 <key_signature>[A-G]				return 'A';
 <key_signature>[b]					return 'FLAT';
 <key_signature>[#]					return 'SHARP';
+<key_signature>"treble"				return 'TREBLE';
+<key_signature>"bass"				return 'BASS';
+<key_signature>"tenor"				return 'TENOR';
 <key_signature>[m][a-z]*			return 'NAME';
 <key_signature>\n					{ this.popState(); }
 <key_signature>\]					{ this.popState(); return ']'; }
@@ -298,6 +304,7 @@ header_value
 	| staff_shift
 	| NAME
 	| key_signature
+	| clef
 	;
 
 staff_shift
@@ -309,6 +316,12 @@ key_signature
 	| A sharp_or_flat					-> key($1 + $2, null)
 	| A key_mode						-> key($1, $2)
 	| A sharp_or_flat key_mode			-> key($1 + $2, $3)
+	;
+
+clef
+	: TREBLE							-> clef($1)
+	| BASS								-> clef($1)
+	| TENOR								-> clef($1)
 	;
 
 sharp_or_flat
