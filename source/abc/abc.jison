@@ -167,9 +167,9 @@
 
 
 H									\b[A-Z](?=\:[^|])
-A									\b[A-G](?=[\W\d\sA-Ga-g_]*\b)
+A									\b[A-G](?=[\W\d\sA-Ga-g_z]*\b)
 Am									\b[A-G](?=[m][a][j]|[m][i][n]\b)
-a									\b[a-g](?=[\W\d\sA-Ga-g_]*\b)
+a									\b[a-g](?=[\W\d\sA-Ga-g_z]*\b)
 z									\b[z]
 Z									\b[Z]
 x									\b[x](?=[\W\d\s])
