@@ -63,6 +63,8 @@ export const MARKS = {
 	[ExpressiveMark.Crescendo]:			"\\<",
 	[ExpressiveMark.Diminuendo]:		"\\>",
 	[ExpressiveMark.CreDimStop]:		"\\!",
+	[ExpressiveMark.SustainOn]:			"\\sustainOn",
+	[ExpressiveMark.SustainOff]:		"\\sustainOff",
 };
 
 

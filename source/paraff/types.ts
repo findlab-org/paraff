@@ -54,6 +54,8 @@ enum ExpressiveMark {
 	r				= "Dr",
 	s				= "Ds",
 	z				= "Dz",
+	SustainOn		= "susOn",
+	SustainOff		= "susOff",
 };
 
 

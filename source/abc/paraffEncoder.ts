@@ -93,8 +93,8 @@ const ExpressiveMapping: Record<string, Token> = {
 	"<)": Token.Ecds,
 	"diminuendo)": Token.Ecds,
 	">)": Token.Ecds,
-	"ped": Token.Eped,
-	"ped-up": Token.EpedUp,
+	"ped": Token.EsusOn,
+	"ped-up": Token.EsusOff,
 };
 
 
