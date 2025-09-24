@@ -404,6 +404,7 @@ assign
 assign_value
 	: string
 	| number
+	| plus_minus_number
 	| NAME
 	;
 
@@ -486,13 +487,18 @@ articulation
 	;
 
 articulation_content
-	: NAME								-> articulation($1)
+	: scope_articulation				-> articulation($1)
 	| scope_articulation parenthese		-> articulation($1, $2)
-	| scope_articulation				-> articulation($1)
 	| DYNAMIC							-> articulation($1)
 	| a									-> articulation($1)
 	| "^"								-> articulation($1)
 	| N									-> ({fingering: Number($1)})
+	| tremolo							-> ({tremolo: $1})
+	;
+
+tremolo
+	: '/'								-> 1
+	| tremolo '/'						-> $1 + 1
 	;
 
 directive_text
@@ -522,6 +528,7 @@ al
 scope_articulation
 	: '<'
 	| '>'
+	| NAME
 	;
 
 parenthese

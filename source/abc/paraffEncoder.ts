@@ -390,6 +390,9 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 				else if ("octaveShift" in term) {
 					tokens.push(TokenOctaveShift[term.octaveShift]);
 				}
+				else if ("tremolo" in term) {
+					tokens.push(TokenTremolo[term.tremolo + 2]);
+				}
 			}
 
 			//tokens.push(Token.EOM);

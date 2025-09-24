@@ -33,6 +33,11 @@ namespace ABC {
 	};
 
 
+	export interface Tremolo {
+		tremolo: number;  // number of slashes
+	};
+
+
 	interface Grace {
 		grace: boolean;
 		acciaccatura: Token;
@@ -97,6 +102,7 @@ namespace ABC {
 		| Tuplet
 		| OctaveShift
 		| Fingering
+		| Tremolo
 	;
 
 
