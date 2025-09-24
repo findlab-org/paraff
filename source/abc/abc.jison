@@ -167,15 +167,15 @@
 
 
 H									\b[A-Z](?=\:[^|])
-A									\b[A-G](?=[\W\d\sA-Ga-g_z]*\b)
+A									\b[A-G](?=[\W\d\sA-Ga-g_zHJLMOPRSTuv]*\b)
 Am									\b[A-G](?=[m][a][j]|[m][i][n]\b)
-a									\b[a-g](?=[\W\d\sA-Ga-g_z]*\b)
+a									\b[a-g](?=[\W\d\sA-Ga-g_zHJLMOPRSTuv]*\b)
 z									\b[z]
 Z									\b[Z]
 x									\b[x](?=[\W\d\s])
 N									[0-9]
 P									\b[HJLMOPRSTuv](?=[A-Ga-g][A-Ga-g0-9]*\b)
-PP									\b[HJLMOPRSTuv](?=[xz!\[^_=])
+PP									\b[HJLMOPRSTuv](?=[xz!\[^_=\s])
 
 SPECIAL								[:!^_,'/<>={}()\[\]|.\-+~]
 
