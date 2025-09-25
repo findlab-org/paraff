@@ -1,7 +1,7 @@
 
 import { Token, PromptToken, isTokenOf, TokenKey, TokenStaff, TokenOctaveShift, TokenNumerator, TokenDenominator,
 	TokenDivision, TokenTimewarp, TokenTremolo, TokenTremoloCast, TokenAccidental, TokenPhonet } from "../paraff/vocab";
-import { Fraction, gcd } from "../fraction";
+import { Fraction, gcd, frac } from "../fraction";
 import { ABC } from "./abc";
 
 
@@ -174,12 +174,12 @@ const findNumerator = (ticks: number, max: number): number => {
 			return n;
 	}
 
-	console.assert(false, "cannot find numerator for ticks:", ticks, max);
-	return 0;
+	//console.assert(false, "cannot find numerator for ticks:", ticks, max);
+	return max - 1;
 };
 
 
-const durationToTokens = (ctx: ABCContext, duration: Fraction | undefined, broken: number | null, isGrace: boolean): Token[] => {
+const durationToTokens = (ctx: ABCContext, duration: Fraction | undefined, broken: number | null): Token[] => {
 	const { numerator, denominator = 1 } = duration || { numerator: 1, denominator: 1 };
 
 	const is2Power = (n: number): boolean => (n & (n - 1)) === 0 && n > 0;
@@ -224,7 +224,7 @@ const durationToTokens = (ctx: ABCContext, duration: Fraction | undefined, broke
 };
 
 
-const eventToTokens = (ctx: ABCContext, term: ABC.EventTerm, isGrace: boolean = false): Token[] => {
+const eventToTokens = (ctx: ABCContext, term: ABC.EventTerm): Token[] => {
 	const event = term.event;
 	let isRest = false;
 
@@ -236,7 +236,21 @@ const eventToTokens = (ctx: ABCContext, term: ABC.EventTerm, isGrace: boolean = 
 		isRest = "xz".includes(event.chord.pitches[0].phonet);
 	}
 
-	tokens.push(...durationToTokens(ctx, event.duration, term.broken, isGrace));
+	if (isRest && event.duration && !term.broken) {
+		// split long rest
+		let {numerator, denominator = 1} = event.duration;
+		while (numerator > denominator) {
+			tokens.push(...durationToTokens(ctx, frac(1, 1), term.broken));
+			tokens.push(event.chord.pitches[0].phonet === "x" ? Token.RSpace : Token.Rest);
+			numerator -= denominator;
+
+			tokens.push(...pitchToTokens(ctx, event.chord.pitches[0]));
+		}
+
+		tokens.push(...durationToTokens(ctx, {numerator, denominator}, term.broken));
+	}
+	else
+		tokens.push(...durationToTokens(ctx, event.duration, term.broken));
 
 	if (isRest)
 		tokens.push(event.chord.pitches[0].phonet === "x" ? Token.RSpace : Token.Rest);
@@ -354,7 +368,7 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 						if ("event" in gEvent) {
 							tokens.push(Token.G);
 							checkStaff();
-							tokens.push(...eventToTokens(ctx, gEvent, true));
+							tokens.push(...eventToTokens(ctx, gEvent));
 						}
 						else if ("articulation" in gEvent || "express" in gEvent)
 							tokens.push(...expressiveToTokens(ctx, gEvent));
