@@ -272,6 +272,16 @@ const expressiveToTokens = (ctx: ABCContext, term: ABC.Expressive): Token[] => {
 		case ".":
 		case "prall":
 		case "trill":
+		case "arpeggio":
+		case "fermata":
+		case "shortfermata":
+		case "_":
+		case "tenuto":
+		case "staccato":
+		case "staccatissimo":
+		case "wedge":
+		case "^":
+		case "marcato":
 			ctx.pendingExpresses.push(value);
 
 			break;
