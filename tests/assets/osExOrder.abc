@@ -1,0 +1,14 @@
+X:1
+%Romantic
+%Tchaikovsky, Pyotr
+%Keyboard
+%%score { ( 1 2 ) | ( 3 4 ) }
+L:1/8
+Q:1/4=104
+M:3/4
+K:G
+V:1 treble nm="Piano" snm="F-no"
+V:2 treble 
+V:3 bass 
+V:4 bass 
+[V:1]!>(! (!>![g'g'']2- [g'g''][f'f''] (3[e'e''][d'd''][bb'])!8va)!!>)!|[V:2]z [c''e'']2 c''2 g'!8va)!|[V:3]z2 ([D,CG]2 [CGe]2)|[V:4]x6|

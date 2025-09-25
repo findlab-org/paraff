@@ -54,7 +54,7 @@ namespace ABC {
 
 	export interface Articulation {
 		articulation: Token;
-		scope?: '<' | '>';
+		scope?: '(' | ')';
 	};
 
 

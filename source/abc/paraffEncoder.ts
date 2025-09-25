@@ -360,6 +360,15 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 					tokens.push(TokenStaff[ctx.staff - 1]);
 			};
 
+			// re-order terms
+			for (let i = 0; i < voice.terms.length - 1; i++) {
+				const term = voice.terms[i];
+				const nextTerm = voice.terms[i + 1];
+
+				if ("octaveShift" in term && "scope" in nextTerm && nextTerm.scope === ")")
+					voice.terms.splice(i, 0, ...voice.terms.splice(i + 1, 1));
+			}
+
 			for (const term of voice.terms) {
 				if ("event" in term) {
 					checkStaff();
