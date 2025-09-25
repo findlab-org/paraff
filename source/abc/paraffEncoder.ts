@@ -350,6 +350,7 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 
 		for (const [vi, voice] of measure.voices.entries()) {
 			ctx.y = 0;
+			ctx.triplet = undefined;
 
 			const tokens: Token[] = [];
 
