@@ -28,6 +28,7 @@ const main = async (): Promise<void> => {
 	const source = (argv as any).source as string;
 
 	const abcGrammar = await import("../source/abc/grammar.jison.js");
+	const paraffGrammar = await import("../source/paraff/grammar.jison.js");
 
 	const realSource = fs.realpathSync(source);
 	const isFile = fs.lstatSync(realSource).isFile();
@@ -43,9 +44,25 @@ const main = async (): Promise<void> => {
 
 		const sourceText = fs.readFileSync(filePath, { encoding: "utf-8" });
 		const doc = abcGrammar.parse(sourceText) as ABC.Document;
-		const sentences = abcToParaff(doc);
+		const samples = abcToParaff(doc);
 
-		scores[scoreName] = Object.fromEntries(sentences.map((s, idx) => [idx + 1, paraff.stringifyTokens(s.sentence)]));
+		// TODO: append author descriptor
+
+		const score = samples.map(s => [s.description.join(" "), paraff.combineSpaces(paraff.stringifyTokens(s.sentence))]);
+
+		// validate score
+		score.forEach(([_, sentence], index) => {
+			try {
+				const doc = paraffGrammar.parse(sentence) as paraff.ParaffDocument.Measure;
+				if (doc.ill)
+					console.warn("invalid sentence:", scoreName, index + 1, sentence);
+			}
+			catch (err) {
+				console.log("error to parse sentence:", index + 1, sentence, err);
+			}
+		});
+
+		scores[scoreName] = Object.fromEntries(score.map((ds, i) => [i + 1, ds.join("\n")]));
 	});
 
 	const outputPath = path.resolve(sourceDir, "./paraff.yaml");
