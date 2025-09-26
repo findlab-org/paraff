@@ -42,6 +42,9 @@ interface ABCContext {
 };
 
 
+type VoiceProperty = Record<string, any>;
+
+
 const PhonetMapping: Record<string, Token> = {
 	a: Token.a,
 	b: Token.b,
@@ -348,7 +351,7 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 			description: new Set(),
 		};
 
-		for (const [vi, voice] of measure.voices.entries()) {
+		for (const [vi, voiceBar] of measure.voices.entries()) {
 			ctx.y = 0;
 			ctx.triplet = undefined;
 
@@ -356,23 +359,28 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 
 			//tokens.push(Token.BOM);
 
-			const checkStaff = () => {
-				if (tokens.length === 0)
+			const checkStaff = (voice: VoiceProperty) => {
+				if (tokens.length === 0) {
 					tokens.push(TokenStaff[ctx.staff - 1]);
+					if (voice && voice.clef)
+						tokens.push(ClefMapping[voice.clef]);
+				}
 			};
 
 			// re-order terms
-			for (let i = 0; i < voice.terms.length - 1; i++) {
-				const term = voice.terms[i];
-				const nextTerm = voice.terms[i + 1];
+			for (let i = 0; i < voiceBar.terms.length - 1; i++) {
+				const term = voiceBar.terms[i];
+				const nextTerm = voiceBar.terms[i + 1];
 
 				if ("octaveShift" in term && "scope" in nextTerm && nextTerm.scope === ")")
-					voice.terms.splice(i, 0, ...voice.terms.splice(i + 1, 1));
+					voiceBar.terms.splice(i, 0, ...voiceBar.terms.splice(i + 1, 1));
 			}
 
-			for (const term of voice.terms) {
+			for (const term of voiceBar.terms) {
+				const voice = voiceMapping[ctx.voice];
+
 				if ("event" in term) {
-					checkStaff();
+					checkStaff(voice);
 					tokens.push(...eventToTokens(ctx, term));
 
 					for (const pe of ctx.pendingExpresses)
@@ -387,7 +395,7 @@ const tuneToParaffMeasures = (tune: ABC.Tune): ParaffMeasure[] => {
 					for (const gEvent of term.events) {
 						if ("event" in gEvent) {
 							tokens.push(Token.G);
-							checkStaff();
+							checkStaff(voice);
 							tokens.push(...eventToTokens(ctx, gEvent));
 						}
 						else if ("articulation" in gEvent || "express" in gEvent)
