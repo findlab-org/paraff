@@ -8,11 +8,13 @@ export * from "./tokenTransfer";
 export * from "./utils";
 
 import * as lilypondEncoder from "./lilypondEncoder";
+import * as meiEncoder from "./meiEncoder";
 //import * as lilypondDecoder from "./lilypondDecoder";
 
 
 
 export {
 	lilypondEncoder,
+	meiEncoder,
 	//lilypondDecoder,
 };
