@@ -24,7 +24,9 @@
     "@types/yargs": "^17.0.32",
     "jison": "^0.4.18",
     "lotus": "git+ssh://git@github.com:k-l-lambda/lotus.git#f64031f",
+    "midi-parser-js": "^4.0.4",
     "ts-node": "^10.9.2",
+    "verovio": "^5.7.0",
     "yargs": "^17.7.2"
   }
 }

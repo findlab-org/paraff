@@ -95,8 +95,12 @@ const escapeXml = (str: string): string => {
 
 const encodePitch = (pitch: ParaffDocument.Pitch): { pname: string; oct: number; accid?: string } => {
 	const pname = PITCH_NAMES[pitch.phonet.toLowerCase()] || pitch.phonet.toLowerCase();
-	// Base octave is 4 (middle C octave), adjust by octaves
-	const oct = 4 + pitch.octaves;
+	// The note field represents absolute pitch position relative to middle C (c4=0)
+	// It already incorporates octave shifts (Osup/Osub) into the position.
+	// Formula: octave = 4 + floor(note/7)
+	// e.g., d5 (from "d Osup") has note=8, so oct = 4 + floor(8/7) = 4 + 1 = 5
+	// e.g., g3 has note=-3, so oct = 4 + floor(-3/7) = 4 + (-1) = 3
+	const oct = 4 + Math.floor(pitch.note / 7);
 	const accid = pitch.acc ? ACCIDENTALS[pitch.acc] : undefined;
 
 	return { pname, oct, accid };
