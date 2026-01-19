@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "lib",
+    "rootDir": ".",
+    "skipLibCheck": true,
+    "lib": ["ES2020"],
+    "types": ["node"]
+  },
+  "include": [
+    "index.ts",
+    "source/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "lib",
+    "tests",
+    "tools",
+    "footages",
+    "source/paraff/lilypondDecoder.ts"
+  ]
+}

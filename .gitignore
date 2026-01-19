@@ -11,5 +11,8 @@ package-lock.json
 # build this file by tools/buildJisonParser.ts
 *.jison.js
 
+# build output
+/lib/
+
 /footages/
 /tests/multistaff-midi/output

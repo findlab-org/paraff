@@ -1,22 +1,32 @@
 {
-  "name": "paraff",
+  "name": "@k-l-lambda/paraff",
   "version": "1.0.0",
-  "description": "**PARAFF** is a sheet music domian-specific language, designed for algorithmic musical composition.",
-  "source": "./index.ts",
+  "description": "PARAFF is a sheet music domain-specific language, designed for algorithmic musical composition.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "source"
+  ],
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:grammar": "ts-node ./tools/buildJisonParser.ts",
     "postinstall": "ts-node ./tools/buildJisonParser.ts",
+    "prepublishOnly": "npm run build:grammar && npm run build",
     "test": "ts-node ./tests/parser.ts",
     "ts": "ts-node"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FindLab-org/paraff.git"
+    "url": "git+https://github.com/k-l-lambda/paraff.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "author": "k.l.lambda",
   "license": "ISC",
-  "homepage": "https://github.com/FindLab-org/paraff#readme",
+  "homepage": "https://github.com/k-l-lambda/paraff#readme",
   "dependencies": {
-    "typescript": "^5.3.3",
     "yaml": "^2.3.4"
   },
   "devDependencies": {
@@ -26,6 +36,7 @@
     "lotus": "git+ssh://git@github.com:k-l-lambda/lotus.git#f64031f",
     "midi-parser-js": "^4.0.4",
     "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
     "verovio": "^5.7.0",
     "yargs": "^17.7.2"
   }
