@@ -1,6 +1,6 @@
 {
   "name": "@k-l-lambda/paraff",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "PARAFF is a sheet music domain-specific language, designed for algorithmic musical composition.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

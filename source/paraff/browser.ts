@@ -538,6 +538,9 @@ function parseMeasure(tokens: string[], startKey: number, startTimeNum: number, 
 				const voice = measure.notes[currentVoice];
 				if (voice.length > 0) {
 					voice[voice.length - 1].arpeggio = true;
+				} else {
+					// No previous note, apply to next note
+					pendingModifiers.arpeggio = true;
 				}
 			}
 			continue;
