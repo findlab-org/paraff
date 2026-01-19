@@ -1,6 +1,6 @@
 {
   "name": "@k-l-lambda/paraff",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "PARAFF is a sheet music domain-specific language, designed for algorithmic musical composition.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -21,7 +21,6 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "build:grammar": "ts-node ./tools/buildJisonParser.ts",
-    "postinstall": "ts-node ./tools/buildJisonParser.ts",
     "prepublishOnly": "npm run build:grammar && npm run build",
     "test": "ts-node ./tests/parser.ts",
     "ts": "ts-node"
