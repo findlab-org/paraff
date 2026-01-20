@@ -1,2 +1,2 @@
 
-export * from "./source/paraff/browser";
+export * from "./source/paraff";
