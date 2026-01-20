@@ -1,6 +1,6 @@
 {
   "name": "@findlab-org/paraff",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "PARAFF is a sheet music domain-specific language, designed for algorithmic musical composition.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -19,7 +19,7 @@
     "source"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && cp source/paraff/grammar.jison.js lib/source/paraff/ && cp source/abc/grammar.jison.js lib/source/abc/",
     "build:grammar": "ts-node ./tools/buildJisonParser.ts",
     "prepublishOnly": "npm run build:grammar && npm run build",
     "test": "ts-node ./tests/parser.ts",
